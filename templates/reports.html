@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reports — WaterGuard AI</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+  <nav class="navbar premium">
+    <div class="nav-inner">
+      <div class="nav-left">
+        <div class="brand">
+          <div class="brand-mark">🌊</div>
+          <div class="brand-text">
+            <div class="brand-title">WaterGuard AI</div>
+            <div class="brand-sub">Water Waste Detection</div>
+          </div>
+        </div>
+        <ul class="nav-links">
+          <li><a href="/" class="nav-link">Home</a></li>
+          <li><a href="/dashboard" class="nav-link">Dashboard</a></li>
+          <li><a href="/live" class="nav-link">Live Detection</a></li>
+          <li><a href="/analytics" class="nav-link">Analytics</a></li>
+          <li><a href="/reports" class="nav-link active">Reports</a></li>
+        </ul>
+      </div>
+      <div class="nav-right">
+        <button class="icon-btn" id="themeToggle" aria-label="Toggle theme">🌓</button>
+        <button class="icon-btn" id="notifBtn" aria-label="Notifications">🔔</button>
+        <div class="profile-pill">JD ▾</div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="dashboard">
+    <section class="upload-section compact">
+      <div class="upload-header">
+        <h2>Reports</h2>
+        <p class="muted">Generate and download detailed reports for detections, trends and cleanup recommendations.</p>
+      </div>
+
+      <div class="details-card">
+        <h2>Generate Report</h2>
+        <p class="muted">Choose a date range and report type.</p>
+        <div style="display:flex;gap:0.6rem;flex-wrap:wrap;margin-top:0.6rem;">
+          <input type="date" />
+          <input type="date" />
+          <select><option>Detection Summary (PDF)</option><option>CSV Export</option></select>
+          <button class="btn btn-primary">Generate</button>
+        </div>
+      </div>
+
+      <div class="comparison-grid">
+        <div class="img-card">
+          <div class="img-label">Recent Reports</div>
+          <div class="history-list" style="max-height:260px;overflow:auto;">
+            <div class="history-item"><div class="history-info"><div class="h-date">2026-07-10</div><div class="h-dets">Monthly Summary — <a href="#">Download PDF</a></div></div></div>
+            <div class="history-item"><div class="history-info"><div class="h-date">2026-06-05</div><div class="h-dets">Ad-hoc Export — <a href="#">Download CSV</a></div></div></div>
+          </div>
+        </div>
+        <div class="img-card">
+          <div class="img-label">Preview</div>
+          <div style="height:260px;display:flex;align-items:center;justify-content:center;color:var(--muted);">[PDF Preview Placeholder]</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>Reports · WaterGuard AI</p>
+  </footer>
+
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

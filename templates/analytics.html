@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analytics — WaterGuard AI</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <nav class="navbar premium">
+    <div class="nav-inner">
+      <div class="nav-left">
+        <div class="brand">
+          <div class="brand-mark">🌊</div>
+          <div class="brand-text">
+            <div class="brand-title">WaterGuard AI</div>
+            <div class="brand-sub">Water Waste Detection</div>
+          </div>
+        </div>
+        <ul class="nav-links">
+          <li><a href="/" class="nav-link">Home</a></li>
+          <li><a href="/dashboard" class="nav-link">Dashboard</a></li>
+          <li><a href="/live" class="nav-link">Live Detection</a></li>
+          <li><a href="/analytics" class="nav-link active">Analytics</a></li>
+          <li><a href="/reports" class="nav-link">Reports</a></li>
+        </ul>
+      </div>
+      <div class="nav-right">
+        <button class="icon-btn" id="themeToggle" aria-label="Toggle theme">🌓</button>
+        <button class="icon-btn" id="notifBtn" aria-label="Notifications">🔔</button>
+        <div class="profile-pill">JD ▾</div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="dashboard">
+    <section class="upload-section compact">
+      <div class="upload-header">
+        <h2>Analytics</h2>
+        <p class="muted">Interactive charts and trends from detections over time.</p>
+      </div>
+
+      <div class="comparison-grid">
+        <div class="img-card">
+          <div class="img-label">Daily Waste Detection</div>
+          <canvas id="lineChart" height="180"></canvas>
+        </div>
+        <div class="img-card">
+          <div class="img-label">Waste Category Distribution</div>
+          <canvas id="pieChart" height="180"></canvas>
+        </div>
+      </div>
+
+      <div class="details-card">
+        <h2>Monthly Detection Trend</h2>
+        <canvas id="areaChart" height="120"></canvas>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>Analytics · WaterGuard AI</p>
+  </footer>
+
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  <script>
+    // Simple demo charts
+    const lineCtx = document.getElementById('lineChart');
+    if (lineCtx) new Chart(lineCtx, { type: 'line', data: { labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], datasets:[{label:'Detections',data:[12,19,7,14,26,20,18],borderColor:'#00D9FF', backgroundColor:'rgba(0,217,255,0.08)', fill:true} ] }, options:{responsive:true} });
+
+    const pieCtx = document.getElementById('pieChart');
+    if (pieCtx) new Chart(pieCtx, { type: 'pie', data: { labels:['Plastic','Wood','Hyacinth','Metal','Other'], datasets:[{data:[60,10,15,5,10], backgroundColor:['#0088FF','#00C896','#00D9FF','#FFD700','#A0764A'] }] });
+
+    const areaCtx = document.getElementById('areaChart');
+    if (areaCtx) new Chart(areaCtx, { type: 'bar', data: { labels:['Jan','Feb','Mar','Apr','May','Jun'], datasets:[{label:'Monthly', data:[120,150,130,170,160,180], backgroundColor:'#00C896'}] }, options:{responsive:true} });
+  </script>
+</body>
+</html>

@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Detection — WastageDetection AI</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800;900&family=Inter:wght@300;400;600;800;900&display=swap" rel="stylesheet">
+  <!-- GSAP -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+</head>
+<body>
+  <!-- Premium Navbar -->
+  <nav class="navbar premium">
+    <div class="nav-inner">
+      <div class="nav-left">
+        <div class="brand">
+          <div class="brand-mark">🌍</div>
+          <div class="brand-text">
+            <div class="brand-title">WastageDetection</div>
+            <div class="brand-sub">AI Waste Detection</div>
+          </div>
+        </div>
+        <ul class="nav-links">
+          <li><a href="/" class="nav-link">Home</a></li>
+          <li><a href="/dashboard" class="nav-link">Dashboard</a></li>
+          <li><a href="/live" class="nav-link active">Live Detection</a></li>
+          <li><a href="/analytics" class="nav-link">Analytics</a></li>
+          <li><a href="/reports" class="nav-link">Reports</a></li>
+        </ul>
+      </div>
+      <div class="nav-right">
+        <button class="icon-btn" id="themeToggle" aria-label="Toggle theme">🌓</button>
+        <button class="icon-btn" id="notifBtn" aria-label="Notifications">🔔</button>
+        <div class="profile-pill">Account ▾</div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="dashboard">
+    <!-- Live Detection Section -->
+    <section class="upload-section compact">
+      <div class="upload-header">
+        <h2>📹 Live Detection</h2>
+        <p>Stream from your camera or upload a video for real-time waste detection with instant overlays</p>
+      </div>
+
+      <div class="result-page">
+        <div class="comparison-grid">
+          <!-- Live Feed Card -->
+          <div class="img-card">
+            <div class="img-label">🎥 Live Camera Feed</div>
+            <video id="liveVideo" playsinline autoplay muted style="width:100%; height:300px; background:#000; border-radius:12px; object-fit:cover;"></video>
+            <div style="margin-top:1rem; display:flex; gap:0.8rem; flex-wrap:wrap;">
+              <button class="btn btn-primary btn-small" id="startCam">▶️ Start Camera</button>
+              <button class="btn btn-ghost btn-small" id="pauseCam">⏸️ Pause</button>
+              <button class="btn btn-secondary btn-small" id="captureBtn">📸 Capture</button>
+              <div style="min-width:160px; display:flex; align-items:center; gap:0.5rem;">
+                <label for="liveModelSelect" style="font-size:0.82rem; color:var(--text-muted);">Model</label>
+                <select id="liveModelSelect" class="select-field">
+                  {% for m in model_choices %}
+                    <option value="{{ m.id }}">{{ m.name }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Detections Card -->
+          <div class="img-card">
+            <div class="img-label">🎯 Detections (Real-time)</div>
+            <div id="detectionsList" style="min-height:220px; max-height:350px; overflow-y:auto; padding:0.8rem 0;">
+              <p class="muted" style="text-align:center; padding:2rem 1rem; color:var(--text-muted);">No detections yet. Start camera to begin...</p>
+            </div>
+            <div style="margin-top:1rem; display:flex; justify-content:space-between; align-items:center; font-size:0.9rem;">
+              <div style="font-weight:700;">
+                <span style="color:var(--primary-light);">FPS:</span>
+                <span id="fpsVal" style="font-size:1.2rem; color:var(--accent);">0</span>
+              </div>
+              <a class="btn btn-ghost btn-small" href="#">📥 Export Data</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stats Row -->
+        <div class="stats-grid" style="margin-top:2rem; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));">
+          <div class="stat-card">
+            <div class="stat-icon">📊</div>
+            <div class="stat-name">Total Detections</div>
+            <div class="stat-count" id="totalDetections">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">⚡</div>
+            <div class="stat-name">Avg FPS</div>
+            <div class="stat-count" id="avgFps">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">⏱️</div>
+            <div class="stat-name">Session Time</div>
+            <div class="stat-count" id="sessionTime">0:00</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">📈</div>
+            <div class="stat-name">Accuracy</div>
+            <div class="stat-count">97%</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>Live Detection · WastageDetection AI · Real-time Environmental Monitoring</p>
+  </footer>
+
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/animations.js') }}"></script>
+  
+  <script>
+    // Lightweight camera controls with animations (liveVideo defined in main.js)
+    const startBtn = document.getElementById('startCam');
+    const pauseBtn = document.getElementById('pauseCam');
+    const captureBtn = document.getElementById('captureBtn');
+    const detectionsList = document.getElementById('detectionsList');
+    const fpsVal = document.getElementById('fpsVal');
+
+    let detectionCount = 0;
+    let sessionStartTime = null;
+    let fpsCounter = 0;
+
+    startBtn && startBtn.addEventListener('click', async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+          video: { 
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          }, 
+          audio: false 
+        });
+        liveVideo.srcObject = stream;
+        sessionStartTime = Date.now();
+        
+        // Show notification
+        if (typeof AnimationLib !== 'undefined' && AnimationLib.showNotification) {
+          AnimationLib.showNotification('✅ Camera started successfully!', 'success');
+        }
+        
+        // Start FPS counter
+        startFpsCounter();
+      } catch(e) { 
+        if (typeof AnimationLib !== 'undefined' && AnimationLib.showNotification) {
+          AnimationLib.showNotification('❌ Unable to access camera: ' + e.message, 'error');
+        }
+      }
+    });
+
+    pauseBtn && pauseBtn.addEventListener('click', () => {
+      if (liveVideo.srcObject) {
+        const tracks = liveVideo.srcObject.getTracks();
+        tracks.forEach(t => t.stop());
+        liveVideo.srcObject = null;
+        
+        if (typeof AnimationLib !== 'undefined' && AnimationLib.showNotification) {
+          AnimationLib.showNotification('⏸️ Camera paused', 'info');
+        }
+      }
+    });
+
+    captureBtn && captureBtn.addEventListener('click', () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = liveVideo.videoWidth;
+      canvas.height = liveVideo.videoHeight;
+      canvas.getContext('2d').drawImage(liveVideo, 0, 0);
+      
+      const link = document.createElement('a');
+      link.href = canvas.toDataURL('image/png');
+      link.download = `detection-${Date.now()}.png`;
+      link.click();
+      
+      if (typeof AnimationLib !== 'undefined' && AnimationLib.showNotification) {
+        AnimationLib.showNotification('📸 Image captured!', 'success');
+      }
+    });
+
+    function startFpsCounter() {
+      let lastTime = Date.now();
+      let frameCount = 0;
+
+      function updateFps() {
+        frameCount++;
+        const now = Date.now();
+        if (now - lastTime >= 1000) {
+          fpsVal.textContent = frameCount;
+          frameCount = 0;
+          lastTime = now;
+          
+          // Update session time
+          if (sessionStartTime) {
+            const elapsed = Math.floor((Date.now() - sessionStartTime) / 1000);
+            const mins = Math.floor(elapsed / 60);
+            const secs = elapsed % 60;
+            document.getElementById('sessionTime').textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+          }
+        }
+        requestAnimationFrame(updateFps);
+      }
+      updateFps();
+    }
+
+    // Simulate detections for demo
+    function addDetection(type = 'Plastic Waste', confidence = 0.95) {
+      detectionCount++;
+      document.getElementById('totalDetections').textContent = detectionCount;
+      
+      const item = document.createElement('div');
+      item.className = 'detection-item';
+      item.innerHTML = `
+        <div class="detection-label">🎯 ${type}</div>
+        <div class="detection-confidence">Confidence: ${(confidence * 100).toFixed(1)}%</div>
+      `;
+      
+      detectionsList.innerHTML = '';
+      detectionsList.insertBefore(item, detectionsList.firstChild);
+      
+      // Animate
+      if (typeof gsap !== 'undefined') {
+        gsap.fromTo(item, { opacity: 0, x: -20 }, { opacity: 1, x: 0, duration: 0.3 });
+      }
+    }
+
+    // Demo detections (remove in production)
+    setTimeout(() => {
+      if (liveVideo.srcObject) {
+        addDetection('Plastic Waste', 0.96);
+      }
+    }, 3000);
+
+    // Set active nav
+    function setActiveNav() {
+      const links = document.querySelectorAll('.nav-link');
+      const current = window.location.pathname;
+      links.forEach(a => {
+        a.classList.toggle('active', a.pathname === current);
+      });
+    }
+    setActiveNav();
+  </script>
+</body>
+</html>

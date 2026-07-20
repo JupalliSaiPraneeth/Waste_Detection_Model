@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — WaterGuard AI</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+</head>
+<body>
+  <nav class="navbar premium">
+    <div class="nav-inner">
+      <div class="nav-left">
+        <div class="brand">
+          <div class="brand-mark">🌊</div>
+          <div class="brand-text">
+            <div class="brand-title">WaterGuard AI</div>
+            <div class="brand-sub">Water Waste Detection</div>
+          </div>
+        </div>
+        <ul class="nav-links">
+          <li><a href="/" class="nav-link">Home</a></li>
+          <li><a href="/dashboard" class="nav-link active">Dashboard</a></li>
+          <li><a href="/live" class="nav-link">Live Detection</a></li>
+          <li><a href="/analytics" class="nav-link">Analytics</a></li>
+          <li><a href="/reports" class="nav-link">Reports</a></li>
+          <li><a href="/about" class="nav-link">About</a></li>
+        </ul>
+      </div>
+      <div class="nav-right">
+        <button class="icon-btn" id="themeToggle" aria-label="Toggle theme">🌓</button>
+        <button class="icon-btn" id="notifBtn" aria-label="Notifications">🔔</button>
+        <div class="profile-pill">JD ▾</div>
+      </div>
+    </div>
+  </nav>
+  <main class="dashboard">
+    <div class="header-row" style="max-width:1200px;margin:0 auto 18px;">
+      <div>
+        <div class="page-title">Driftline — Detection Dashboard</div>
+        <div class="page-sub">Here's a snapshot of your detection activity</div>
+      </div>
+      <div class="stat-pills">
+        <div class="stat-pill" id="pill-confidence">
+          <div class="pill-icon" style="background:linear-gradient(90deg,var(--driftline-gold),var(--alert-coral));">%</div>
+          <div>
+            <div class="pill-label">Avg confidence</div>
+            <div class="pill-value" data-key="avg_confidence">—</div>
+          </div>
+        </div>
+        <div class="stat-pill" id="pill-detections">
+          <div class="pill-icon" style="background:var(--alert-coral);">#</div>
+          <div>
+            <div class="pill-label">Total detections (today)</div>
+            <div class="pill-value" data-key="total_today">—</div>
+          </div>
+        </div>
+        <div class="stat-pill" id="pill-classes">
+          <div class="pill-icon" style="background:var(--moss);">C</div>
+          <div>
+            <div class="pill-label">Classes detected</div>
+            <div class="pill-value" data-key="classes_count">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dashboard-grid">
+      <section class="card card-detections">
+        <div class="detections-hero">
+          <div>
+            <div class="detections-big" data-key="total_week">—</div>
+            <div class="detections-sub">Scans per hour</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="muted">Weekly breakdown</div>
+            <div class="muted" style="font-size:12px;">Two-tone bars show waste / organic split</div>
+          </div>
+        </div>
+        <div class="bars-week" id="barsWeek">
+          <!-- Bars injected by JS or skeletons -->
+          <div class="bar skeleton" style="width:100%"></div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:8px;justify-content:space-between;">
+          <div class="bar-label">Mon</div><div class="bar-label">Tue</div><div class="bar-label">Wed</div><div class="bar-label">Thu</div><div class="bar-label">Fri</div><div class="bar-label">Sat</div><div class="bar-label">Sun</div>
+        </div>
+      </section>
+
+      <section class="card card-trends">
+        <div class="trends-controls">
+          <div style="display:flex;gap:8px;align-items:center;">
+            <div class="muted">Period</div>
+            <select id="trendPeriod">
+              <option value="7">7d</option>
+              <option value="14">14d</option>
+              <option value="30">30d</option>
+            </select>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <div class="toggles">
+              <div class="toggle active" data-series="waste">Waste</div>
+              <div class="toggle active" data-series="organic">Organic</div>
+              <div class="toggle active" data-series="confidence">Confidence</div>
+            </div>
+            <button class="btn btn-ghost" id="exportTrends">Export</button>
+          </div>
+        </div>
+        <canvas id="trendsChart" height="220"></canvas>
+      </section>
+
+      <section class="card card-classes">
+        <h3>Top Classes</h3>
+        <div id="classesList">
+          <!-- rows injected by JS or skeleton -->
+          <div class="class-row"><div class="class-left"><div class="class-icon skeleton"></div><div class="class-name skeleton" style="width:120px;height:14px;"></div></div><div class="class-count skeleton" style="width:36px;height:14px;"></div></div>
+        </div>
+      </section>
+
+      <section class="card card-rate">
+        <h3>Detection Rate</h3>
+        <div class="insight" id="rateInsight">Loading insights…</div>
+        <canvas id="rateChart" height="120"></canvas>
+      </section>
+
+      <section class="card card-ministats">
+        <div class="mini">
+          <div class="mini-title">Inference Latency</div>
+          <div class="mini-value" data-key="latency">— ms</div>
+          <div class="mini-legend">Latency · Preprocess</div>
+        </div>
+        <div class="mini">
+          <div class="mini-title">Detections / Frame</div>
+          <div class="mini-value" data-key="dets_per_frame">—</div>
+          <div class="mini-legend">Avg · Max</div>
+        </div>
+        <div class="mini">
+          <div class="mini-title">Confidence Percentiles</div>
+          <div class="mini-value" id="confPercentiles">—</div>
+          <div class="mini-legend">P75 · P90 · P95 · P99</div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <p>WaterGuard AI · Monitoring · Built with Flask</p>
+  </footer>
+
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
