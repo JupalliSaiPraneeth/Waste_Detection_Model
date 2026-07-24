@@ -1,28 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WastageDetection - AI Waste Detection</title>
+  <title>WastageDetection - AI-Powered Aquatic Waste Detection</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800;900&family=Inter:wght@300;400;600;800;900&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800;900&family=Inter:wght@300;400;600;700;800;900&display=swap"
+    rel="stylesheet">
   <!-- GSAP & Plugins -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/Draggable.min.js"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
+
 <body>
   <!-- Premium Navbar -->
   <nav class="navbar premium">
     <div class="nav-inner">
       <div class="nav-left">
         <div class="brand">
-          <div class="brand-mark">🌍</div>
+          <img class="brand-logo" src="{{ url_for('static', filename='images/wastelogo.png') }}" alt="AquaVision Logo"
+            style="height: 44px; width: auto; object-fit: contain; filter: drop-shadow(0 0 8px rgba(0, 217, 255, 0.4));" />
           <div class="brand-text">
-            <div class="brand-title">WastageDetection</div>
+            <div class="brand-title">AquaVision</div>
             <div class="brand-sub">AI Waste Detection</div>
           </div>
         </div>
@@ -36,43 +42,136 @@
         </ul>
       </div>
       <div class="nav-right">
-        <button class="icon-btn" id="themeToggle" aria-label="Toggle theme">🌓</button>
-        <button class="icon-btn" id="notifBtn" aria-label="Notifications">🔔</button>
-        <div class="profile-pill">Account ▾</div>
+        <button class="icon-btn" id="themeToggle" aria-label="Toggle theme"></button>
+        <button class="icon-btn" id="notifBtn" aria-label="Notifications"><svg xmlns="http://www.w3.org/2000/svg"
+            width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+          </svg></button>
+
       </div>
     </div>
   </nav>
 
-  <main class="dashboard">
+  <main>
     <!-- Hero Section with Video Background -->
     <section class="hero-section">
       <video id="heroBgVideo" class="hero-bg-video" autoplay muted loop playsinline>
         <source src="/detectionvideo.mp4" type="video/mp4">
       </video>
-      <canvas id="particleCanvas" class="particle-canvas" aria-hidden="true"></canvas>
-      <div class="hero-overlay">
-        <div class="hero-inner">
-          <!-- Hero content removed to expose clear background video -->
+      <div class="hero-overlay"></div>
+
+      <div class="hero-inner">
+        <div class="hero-badge"
+          style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.4rem 1.1rem; background: rgba(0, 217, 255, 0.12); border: 1px solid rgba(0, 217, 255, 0.3); border-radius: 50px; color: #00D9FF; font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1.5rem; backdrop-filter: blur(12px); box-shadow: 0 0 20px rgba(0, 217, 255, 0.2);">
+          <span
+            style="width: 8px; height: 8px; background: #00D9FF; border-radius: 50%; display: inline-block; box-shadow: 0 0 10px #00D9FF;"></span>
+          Next-Gen AI Waterway Intelligence
+        </div>
+
+        <h1
+          style="font-size: 3.8rem; font-weight: 900; color: #ffffff; margin-bottom: 1.2rem; letter-spacing: -1.8px; line-height: 1.15; text-shadow: 0 4px 20px rgba(0,0,0,0.5);">
+          Detect Aquatic Waste with <span
+            style="background: linear-gradient(135deg, #00D9FF 0%, #00D98E 50%, #FFB700 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; filter: drop-shadow(0 0 25px rgba(0, 217, 255, 0.4));">Model
+            Precision</span>
+        </h1>
+
+        <p
+          style="font-size: 1.25rem; color: rgba(248, 250, 252, 0.9); max-width: 680px; margin: 0 auto 2.2rem; line-height: 1.65; font-weight: 400; text-shadow: 0 2px 10px rgba(0,0,0,0.6);">
+          Real-time detection and analysis of water hyacinths, debris, and floating plastic waste for environmental
+          protection and automated cleanup prioritization.
+        </p>
+
+        <div style="display: flex; gap: 1.2rem; justify-content: center; flex-wrap: wrap; margin-bottom: 2.5rem;">
+          <a href="#features" class="btn btn-primary"
+            style="padding: 0.85rem 2rem; font-size: 1rem; font-weight: 800; border-radius: 12px; box-shadow: 0 10px 30px rgba(0, 217, 255, 0.4);">
+            <svg style="display: inline-block; vertical-align: middle; margin-right: 6px;" width="20" height="20"
+              fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg> Analyze Image Now
+          </a>
+          <a href="/live" class="btn btn-ghost"
+            style="padding: 0.85rem 2rem; font-size: 1rem; font-weight: 800; border-radius: 12px; backdrop-filter: blur(10px); border-color: rgba(255,255,255,0.25);">
+            <svg style="display: inline-block; vertical-align: middle; margin-right: 6px;" width="20" height="20"
+              fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg> Live Feed Detection
+          </a>
+        </div>
+
+        <!-- Hero Feature Badges Row -->
+        <div
+          style="display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; max-width: 800px; margin: 0 auto; padding-top: 1.5rem; border-top: 1px solid rgba(255, 255, 255, 0.15);">
+          <div
+            style="display: flex; align-items: center; gap: 0.6rem; color: rgba(248, 250, 252, 0.95); font-size: 0.9rem; font-weight: 700;">
+            <div
+              style="width: 32px; height: 32px; border-radius: 8px; background: rgba(0, 217, 255, 0.15); display: flex; align-items: center; justify-content: center; border: 1px solid rgba(0, 217, 255, 0.3);">
+              <svg width="18" height="18" fill="none" stroke="#00D9FF" stroke-width="2.5" viewBox="0 0 24 24">
+                <path d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+            YOLOv8 AI Engine
+          </div>
+          <div
+            style="display: flex; align-items: center; gap: 0.6rem; color: rgba(248, 250, 252, 0.95); font-size: 0.9rem; font-weight: 700;">
+            <div
+              style="width: 32px; height: 32px; border-radius: 8px; background: rgba(0, 217, 142, 0.15); display: flex; align-items: center; justify-content: center; border: 1px solid rgba(0, 217, 142, 0.3);">
+              <svg width="18" height="18" fill="none" stroke="#00D98E" stroke-width="2.5" viewBox="0 0 24 24">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+            </div>
+            97.4% High Accuracy
+          </div>
+          <div
+            style="display: flex; align-items: center; gap: 0.6rem; color: rgba(248, 250, 252, 0.95); font-size: 0.9rem; font-weight: 700;">
+            <div
+              style="width: 32px; height: 32px; border-radius: 8px; background: rgba(255, 183, 0, 0.15); display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255, 183, 0, 0.3);">
+              <svg width="18" height="18" fill="none" stroke="#FFB700" stroke-width="2.5" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 6v6l4 2" />
+              </svg>
+            </div>
+            Real-Time Overhead Vision
+          </div>
         </div>
       </div>
 
-      <a href="#features" class="scroll-indicator">
-        <span>▼</span>
+      <a href="#features" class="scroll-indicator" style="opacity: 0.9; text-shadow: 0 2px 10px rgba(0,0,0,0.8);">
+        <span
+          style="font-weight: 700; letter-spacing: 0.5px; font-size: 0.85rem; text-transform: uppercase; color: var(--primary);">Scroll
+          to explore</span>
+        <svg width="20" height="20" fill="none" stroke="var(--primary)" stroke-width="2.5" viewBox="0 0 24 24"
+          style="margin-top: 4px;">
+          <path d="M19 9l-7 7-7-7" />
+        </svg>
       </a>
     </section>
 
     <!-- Upload & Detection Section -->
     <section id="features" class="upload-section">
       <div class="upload-header">
+        <div
+          style="display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.35rem 0.9rem; background: rgba(0, 217, 255, 0.08); border: 1px solid rgba(0, 217, 255, 0.2); border-radius: 30px; color: var(--primary); font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 0.8rem;">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg> Vision Scanner
+        </div>
         <h2>Quick Waste Detection</h2>
-        <p>Upload an image to analyze waste content instantly</p>
+        <p>Upload an image of a water body to analyze waste content instantly using our AI models</p>
       </div>
 
       <form id="uploadForm" action="/predict" method="POST" enctype="multipart/form-data">
         <div class="dropzone" id="dropzone">
           <div id="dropzoneContent">
-            <div class="dropzone-icon">📸</div>
-            <div class="dropzone-text">Drop image here</div>
+            <div class="dropzone-icon"><svg style="display: inline-block; vertical-align: middle;" width="24"
+                height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                <circle cx="12" cy="13" r="4" />
+              </svg></div>
+            <div class="dropzone-text">Drop your image here</div>
             <div class="dropzone-hint">PNG, JPG, or WebP (Max 16MB)</div>
           </div>
           <div id="dropzonePreview" style="display:none;">
@@ -80,23 +179,40 @@
           </div>
         </div>
 
-        <div style="display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; margin-top:2rem;">
+        <div class="action-row">
           <div class="model-select-wrapper">
-            <label for="modelSelect" class="small-label">Model</label>
+            <label for="modelSelect" class="small-label">Detection Model</label>
             <select id="modelSelect" name="model" class="select-field">
               {% for model in model_choices %}
-                <option value="{{ model.id }}">{{ model.name }}</option>
+              <option value="{{ model.id }}">{{ model.name }}</option>
               {% endfor %}
               {% if not model_choices %}
-                <option value="v1">YOLOv8</option>
+              <option value="v1">RT-DETR (Default)</option>
               {% endif %}
             </select>
           </div>
-          <button type="button" class="btn btn-secondary" id="changeImageBtn" style="display:none;">↻ Clear</button>
-          <button type="submit" class="btn btn-primary" id="submitBtn" disabled>
-            <span class="btn-text">🔍 Analyze Image</span>
-            <span class="btn-loading" style="display:none;">⏳ Processing...</span>
-          </button>
+          <div class="button-group">
+            <button type="button" class="btn btn-ghost" id="changeImageBtn" style="display:none;">
+              <svg style="display: inline-block; vertical-align: middle;" width="18" height="18" fill="none"
+                stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg> Clear
+            </button>
+            <button type="submit" class="btn btn-primary" id="submitBtn" disabled>
+              <span class="btn-text"><svg style="display: inline-block; vertical-align: middle;" width="18" height="18"
+                  fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg> Analyze Image</span>
+              <span class="btn-loading" style="display:none;"><svg
+                  style="display: inline-block; vertical-align: middle;" width="18" height="18" fill="none"
+                  stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg> Processing...</span>
+            </button>
+          </div>
         </div>
 
         <input type="file" id="fileInput" name="image" accept=".png,.jpg,.jpeg,.webp" style="display:none;" />
@@ -108,57 +224,115 @@
     <!-- Statistics Grid -->
     <section class="stats-grid">
       <div class="stat-card">
-        <div class="stat-icon">🎯</div>
+        <div class="stat-icon"><svg style="display: inline-block; vertical-align: middle;" width="24" height="24"
+            fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            <circle cx="12" cy="12" r="3" />
+          </svg></div>
         <div class="stat-name">Today's Detections</div>
         <div class="stat-count" id="stat-floating_waste">0</div>
       </div>
       <div class="stat-card">
-        <div class="stat-icon">♻️</div>
-        <div class="stat-name">Total Items Found</div>
+        <div class="stat-icon"><svg style="display: inline-block; vertical-align: middle;" width="24" height="24"
+            fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 11l7-7 7 7M5 19h14M12 4v15" />
+          </svg></div>
+        <div class="stat-name">Water Hyacinth</div>
         <div class="stat-count" id="stat-water_hyacinth">0</div>
       </div>
       <div class="stat-card">
-        <div class="stat-icon">📊</div>
+        <div class="stat-icon"><svg style="display: inline-block; vertical-align: middle;" width="24" height="24"
+            fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6m-5 13V9m10 10v-8m5 8V4" />
+          </svg></div>
         <div class="stat-name">Analysis Runs</div>
         <div class="stat-count" id="stat-Total">0</div>
       </div>
       <div class="stat-card">
-        <div class="stat-icon">⚡</div>
+        <div class="stat-icon"><svg style="display: inline-block; vertical-align: middle;" width="24" height="24"
+            fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg></div>
         <div class="stat-name">Avg Detection</div>
         <div class="stat-count">45 FPS</div>
       </div>
       <div class="stat-card">
-        <div class="stat-icon">🤖</div>
+        <div class="stat-icon"><svg style="display: inline-block; vertical-align: middle;" width="24" height="24"
+            fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          </svg></div>
         <div class="stat-name">Models Active</div>
         <div class="stat-count">{{ model_choices|length }}</div>
       </div>
       <div class="stat-card">
-        <div class="stat-icon">✅</div>
+        <div class="stat-icon"><svg style="display: inline-block; vertical-align: middle;" width="24" height="24"
+            fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg></div>
         <div class="stat-name">System Uptime</div>
         <div class="stat-count">99%</div>
       </div>
     </section>
 
     <!-- Detection History -->
-    <section class="history-section">
-      <div class="history-header">
-        <h2>📜 Detection History</h2>
-        <button class="btn btn-small" id="historyToggle">View History</button>
+    <section class="upload-section compact" style="margin-top: 3rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h2 style="font-size: 1.6rem; font-weight: 900; color: var(--text); letter-spacing: -0.5px;"><svg
+            style="display: inline-block; vertical-align: middle;" width="24" height="24" fill="none"
+            stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg> Detection
+          History</h2>
+        <button class="btn btn-small btn-ghost" id="historyToggle">View History</button>
       </div>
       <div id="historySection" style="display:none;">
         <div id="historyList"></div>
-        <button class="btn btn-ghost btn-small" id="clearHistoryBtn" style="margin-top:1rem;">🗑️ Clear History</button>
+        <button class="btn btn-ghost btn-small" id="clearHistoryBtn" style="margin-top:1rem;"><svg
+            style="display: inline-block; vertical-align: middle;" width="18" height="18" fill="none"
+            stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg> Clear History</button>
       </div>
     </section>
+
+    <!-- Full Screen Loading Overlay with Video Playback -->
+    <div id="loadingOverlay" class="loading-overlay" style="display:none;">
+      <div class="loading-modal-card">
+        <div class="loading-video-wrapper">
+          <video id="loadingVideo" autoplay loop muted playsinline preload="auto">
+            <source src="{{ url_for('static', filename='images/loading.mp4') }}" type="video/mp4">
+            <source src="/static/images/loading.mp4" type="video/mp4">
+          </video>
+          <div class="loading-video-overlay-glow"></div>
+        </div>
+        <div class="loading-status-content">
+          <div class="loading-badge">
+            <span class="loading-dot"></span> AI VISION PIPELINE ACTIVE
+          </div>
+          <h3 class="loading-title">Analyzing Image with AI Model...</h3>
+          <p class="loading-sub">Executing YOLOv8 vision detection to identify water hyacinths & aquatic debris.</p>
+          <div class="loading-progress-bar">
+            <div class="loading-progress-fill"></div>
+          </div>
+        </div>
+      </div>
+    </div>
   </main>
 
   <!-- Footer -->
   <footer class="footer">
-    <p>© 2024 WastageDetection · AI-Powered Environmental Monitoring</p>
+    <p><img src="{{ url_for('static', filename='images/wastelogo.png') }}" alt="Dark Logo"
+        style="height: 24px; vertical-align: middle; margin-right: 10px;" /> © 2026 WastageDetection · AI-Powered
+      Environmental Monitoring · Protecting aquatic ecosystems</p>
   </footer>
 
   <!-- Scripts -->
+  <script src="{{ url_for('static', filename='js/storage-engine.js') }}"></script>
   <script src="{{ url_for('static', filename='js/main.js') }}"></script>
   <script src="{{ url_for('static', filename='js/animations.js') }}"></script>
 </body>
+
 </html>

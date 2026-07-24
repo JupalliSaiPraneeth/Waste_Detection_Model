@@ -1,0 +1,24 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+venv/
+env/
+ENV/
+
+# Temporary upload & result image files
+static/uploads/*
+!static/uploads/.gitkeep
+static/results/*
+!static/results/.gitkeep
+temp_frame.jpg
+
+# Extracted model temp directories and zip archives
+model/__extracted_models__/
+*.zip
+
+# OS generated files
+.DS_Store
+Thumbs.db

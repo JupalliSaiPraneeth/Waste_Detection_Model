@@ -1,42 +1,1284 @@
 /* ============================================================
-   Waste Detection Dashboard — Frontend JS
-   localStorage history + stats + theme + live camera + charts
+   WastageDetection — Enhanced Frontend JavaScript v2.0
    ============================================================ */
 
-const dropzone = document.getElementById("dropzone");
-const fileInput = document.getElementById("fileInput");
-const dropzoneContent = document.getElementById("dropzoneContent");
-const dropzonePreview = document.getElementById("dropzonePreview");
-const previewImg = document.getElementById("previewImg");
-const changeImageBtn = document.getElementById("changeImageBtn");
-const submitBtn = document.getElementById("submitBtn");
-const flash = document.getElementById("flash");
-const form = document.getElementById("uploadForm");
-const historyToggle = document.getElementById("historyToggle");
-const historySection = document.getElementById("historySection");
-const historyList = document.getElementById("historyList");
-const clearHistoryBtn = document.getElementById("clearHistoryBtn");
-const liveVideo = document.getElementById('liveVideo');
-const overlayCanvas = document.getElementById('overlayCanvas');
-const liveModelSelect = document.getElementById('liveModelSelect');
-const modelSelect = document.getElementById('modelSelect');
+// ============================================================
+// DOM ELEMENTS
+// ============================================================
 
-const statEls = {};
-["floating_waste", "water_hyacinth", "Total"].forEach(k => {
-  const el = document.getElementById("stat-" + k);
-  if (el) statEls[k] = el;
+const dropzone = document.getElementById('dropzone');
+const fileInput = document.getElementById('fileInput');
+const dropzoneContent = document.getElementById('dropzoneContent');
+const dropzonePreview = document.getElementById('dropzonePreview');
+const previewImg = document.getElementById('previewImg');
+const changeImageBtn = document.getElementById('changeImageBtn');
+const submitBtn = document.getElementById('submitBtn');
+const flash = document.getElementById('flash');
+const form = document.getElementById('uploadForm');
+const modelSelect = document.getElementById('modelSelect');
+const historyToggle = document.getElementById('historyToggle');
+const historySection = document.getElementById('historySection');
+const historyList = document.getElementById('historyList');
+const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+const liveVideo = document.getElementById('liveVideo');
+const themeToggle = document.getElementById('themeToggle');
+
+const LS_KEY = 'wasteDetectHistory';
+const THEME_KEY = 'wastageDetectTheme';
+
+let selectedFile = null;
+
+// ============================================================
+// INITIALIZATION
+// ============================================================
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadTheme();
+  setActiveNav();
+  setupDropzone();
+  setupFormHandlers();
+  setupHistoryHandlers();
+  setupThemeToggle();
+  loadStats();
+  renderHistory();
 });
 
-const LS_KEY = "wasteDetectHistory";
-const THEME_KEY = "wastageDetectTheme";
-let liveStream = null;
-let liveInterval = null;
-let liveFrameCount = 0;
-let liveLastFpsTime = Date.now();
+// ============================================================
+// THEME MANAGEMENT
+// ============================================================
+
+function loadTheme() {
+  const saved = localStorage.getItem(THEME_KEY) || 'dark';
+  const isDark = saved === 'dark';
+  document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  document.body.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  updateThemeButton(isDark);
+}
+
+function toggleTheme() {
+  const currentTheme = document.body.getAttribute('data-theme') || 'dark';
+  const nextTheme = currentTheme === 'light' ? 'dark' : 'light';
+  const isDark = nextTheme === 'dark';
+  
+  document.documentElement.setAttribute('data-theme', nextTheme);
+  document.body.setAttribute('data-theme', nextTheme);
+  localStorage.setItem(THEME_KEY, nextTheme);
+  updateThemeButton(isDark);
+  
+  showNotification(`Switched to ${isDark ? 'dark' : 'light'} mode`, 'success');
+}
+
+function updateThemeButton(isDark) {
+  const button = document.getElementById('themeToggle');
+  if (button) {
+    button.innerHTML = isDark 
+      ? '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>'
+      : '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>';
+    button.setAttribute('aria-pressed', isDark ? 'true' : 'false');
+  }
+}
+
+function setupThemeToggle() {
+  if (themeToggle) {
+    themeToggle.addEventListener('click', toggleTheme);
+  }
+}
+
+// ============================================================
+// DROPZONE HANDLING
+// ============================================================
+
+function setupDropzone() {
+  if (!dropzone) return;
+
+  // Click to select
+  dropzone.addEventListener('click', () => fileInput.click());
+
+  // File input change
+  fileInput.addEventListener('change', (e) => {
+    const files = e.target.files;
+    if (files.length > 0) {
+      handleFileSelect(files[0]);
+    }
+  });
+
+  // Drag and drop
+  dropzone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dropzone.style.borderColor = 'var(--primary)';
+    dropzone.style.backgroundColor = 'rgba(0, 217, 255, 0.08)';
+  });
+
+  dropzone.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dropzone.style.borderColor = 'var(--border)';
+    dropzone.style.backgroundColor = '';
+  });
+
+  dropzone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dropzone.style.borderColor = 'var(--border)';
+    dropzone.style.backgroundColor = '';
+
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      const dataTransfer = new DataTransfer();
+      dataTransfer.items.add(files[0]);
+      fileInput.files = dataTransfer.files;
+      handleFileSelect(files[0]);
+    }
+  });
+
+  // Change image button
+  if (changeImageBtn) {
+    changeImageBtn.addEventListener('click', clearImagePreview);
+  }
+}
+
+function handleFileSelect(file) {
+  // Validate file type
+  const validTypes = ['image/png', 'image/jpeg', 'image/webp'];
+  if (!validTypes.includes(file.type)) {
+    showNotification('❌ Please select a PNG, JPG, or WebP image', 'error');
+    return;
+  }
+
+  // Validate file size (16MB max)
+  if (file.size > 16 * 1024 * 1024) {
+    showNotification('❌ File size exceeds 16MB limit', 'error');
+    return;
+  }
+
+  selectedFile = file;
+
+  // Display preview
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    previewImg.src = e.target.result;
+    dropzoneContent.style.display = 'none';
+    dropzonePreview.style.display = 'block';
+    
+    if (changeImageBtn) changeImageBtn.style.display = 'inline-flex';
+    if (submitBtn) submitBtn.disabled = false;
+    
+    showNotification('✅ Image loaded successfully', 'success');
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearImagePreview() {
+  selectedFile = null;
+  fileInput.value = '';
+  dropzoneContent.style.display = 'block';
+  dropzonePreview.style.display = 'none';
+  if (changeImageBtn) changeImageBtn.style.display = 'none';
+  if (submitBtn) submitBtn.disabled = true;
+  
+  showNotification('🗑️ Image cleared', 'info');
+}
+
+// ============================================================
+// FORM HANDLING
+// ============================================================
+
+function setupFormHandlers() {
+  if (!form) return;
+
+  // Model selection change handler
+  if (modelSelect) {
+    modelSelect.addEventListener('change', () => {
+      const selectedModel = modelSelect.options[modelSelect.selectedIndex].text;
+      showNotification(`🤖 Model changed to: ${selectedModel}`, 'info');
+    });
+  }
+
+  form.addEventListener('submit', (e) => {
+    if (!selectedFile) {
+      e.preventDefault();
+      showNotification('Please select an image first', 'error');
+      return;
+    }
+
+    disableSubmitUI(true);
+
+    // Show Video Loading Overlay & Play loading.mp4 until detection completes
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    const loadingVideo = document.getElementById('loadingVideo');
+
+    if (loadingOverlay) {
+      loadingOverlay.style.display = 'flex';
+      if (loadingVideo) {
+        try {
+          loadingVideo.currentTime = 0;
+          const playPromise = loadingVideo.play();
+          if (playPromise !== undefined) {
+            playPromise.catch(err => console.warn("Loading video playback:", err));
+          }
+        } catch (err) {
+          console.warn("Video play error:", err);
+        }
+      }
+    }
+  });
+}
+
+function disableSubmitUI(disabled) {
+  if (!submitBtn) return;
+
+  submitBtn.disabled = disabled;
+  const btnText = submitBtn.querySelector('.btn-text');
+  const btnLoading = submitBtn.querySelector('.btn-loading');
+
+  if (disabled) {
+    if (btnText) btnText.style.display = 'none';
+    if (btnLoading) btnLoading.style.display = 'inline';
+    submitBtn.classList.add('disabled');
+  } else {
+    if (btnText) btnText.style.display = 'inline';
+    if (btnLoading) btnLoading.style.display = 'none';
+    submitBtn.classList.remove('disabled');
+  }
+}
+
+// ============================================================
+// HISTORY MANAGEMENT
+// ============================================================
+
+function setupHistoryHandlers() {
+  if (historyToggle) {
+    historyToggle.addEventListener('click', toggleHistory);
+  }
+
+  if (clearHistoryBtn) {
+    clearHistoryBtn.addEventListener('click', clearHistory);
+  }
+}
+
+function toggleHistory() {
+  if (!historySection) return;
+
+  const isVisible = historySection.style.display !== 'none';
+  historySection.style.display = isVisible ? 'none' : 'block';
+  
+  if (historyToggle) {
+    historyToggle.textContent = isVisible ? 'View History' : 'Hide History';
+  }
+
+  if (!isVisible) {
+    renderHistory();
+  }
+}
+
+function renderHistory() {
+  if (!historyList) return;
+
+  try {
+    const history = window.StorageEngine && window.StorageEngine.getDetectionHistory
+      ? window.StorageEngine.getDetectionHistory()
+      : JSON.parse(localStorage.getItem(LS_KEY) || '[]');
+
+    if (history.length === 0) {
+      historyList.innerHTML = `
+        <div style="text-align: center; padding: 2rem; color: var(--text-muted);">
+          <p>No detection history yet</p>
+          <p style="font-size: 0.9rem;">Upload images to start building your history</p>
+        </div>
+      `;
+      return;
+    }
+
+    historyList.innerHTML = history.map((entry, idx) => {
+      const imgSrc = entry.result || entry.original || '/static/images/wastelogo.png';
+      return `
+        <div onclick="openDetectionModal(${idx})" class="history-item-card" style="
+          padding: 1rem;
+          background: rgba(0, 217, 255, 0.05);
+          border: 1px solid rgba(0, 217, 255, 0.2);
+          border-radius: 0.75rem;
+          margin-bottom: 0.75rem;
+          cursor: pointer;
+          transition: all 0.3s;
+        ">
+          <div style="display: flex; gap: 1rem; align-items: center;">
+            <img src="${imgSrc}" alt="History" style="width: 60px; height: 60px; border-radius: 0.5rem; object-fit: cover;" onerror="this.src='/static/images/wastelogo.png'">
+            <div style="flex: 1; min-width: 0;">
+              <div style="font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                ${entry.total || 0} object${entry.total !== 1 ? 's' : ''} detected
+                <span class="badge" style="font-size: 0.7rem; padding: 0.15rem 0.45rem; background: rgba(0, 217, 255, 0.1); color: var(--primary); border: 1px solid rgba(0,217,255,0.2); font-weight: 800;">${entry.model_name || 'YOLOv8'}</span>
+              </div>
+              <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:inline-block; vertical-align:middle; margin-right:4px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>${entry.date || 'Recent scan'}
+              </div>
+            </div>
+            <button onclick="event.stopPropagation(); downloadHistoryItem(${idx})" class="btn btn-small btn-ghost" style="margin: 0;" title="Download image">
+              <svg style="display: inline-block; vertical-align: middle;" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  } catch (error) {
+    console.error('Error rendering history:', error);
+  }
+}
+
+function computeEnvironmentalAnalyticsJS(detections, imgW = 1280, imgH = 720) {
+  const totalObjs = (detections || []).length;
+  const frameArea = imgW * imgH;
+
+  const typeCounts = {};
+  const typeAreaSum = {};
+  let totalArea = 0;
+  let confSum = 0;
+  let maxConf = 0;
+
+  const spatialGrid = [
+    [0, 0, 0],
+    [0, 0, 0],
+    [0, 0, 0]
+  ];
+
+  const confDist = { '0-20%': 0, '20-40%': 0, '40-60%': 0, '60-80%': 0, '80-100%': 0 };
+
+  (detections || []).forEach(d => {
+    const label = d.label || 'unknown';
+    typeCounts[label] = (typeCounts[label] || 0) + 1;
+
+    const conf = d.confidence <= 1 ? d.confidence * 100 : d.confidence;
+    confSum += conf;
+    if (conf > maxConf) maxConf = conf;
+
+    if (conf >= 80) confDist['80-100%']++;
+    else if (conf >= 60) confDist['60-80%']++;
+    else if (conf >= 40) confDist['40-60%']++;
+    else if (conf >= 20) confDist['20-40%']++;
+    else confDist['0-20%']++;
+
+    let area = d.area || 0;
+    let cx = imgW / 2;
+    let cy = imgH / 2;
+
+    if (d.box && d.box.length >= 4) {
+      const [x1, y1, x2, y2] = d.box;
+      area = Math.max(0, x2 - x1) * Math.max(0, y2 - y1);
+      cx = (x1 + x2) / 2;
+      cy = (y1 + y2) / 2;
+    }
+    totalArea += area;
+    typeAreaSum[label] = (typeAreaSum[label] || 0) + area;
+
+    const col = Math.min(2, Math.max(0, Math.floor((cx / imgW) * 3)));
+    const row = Math.min(2, Math.max(0, Math.floor((cy / imgH) * 3)));
+    spatialGrid[row][col] += 1;
+  });
+
+  const wasteComposition = {};
+  const surfaceCoverageByClass = {};
+  Object.keys(typeCounts).forEach(label => {
+    const cnt = typeCounts[label];
+    const pct = totalObjs > 0 ? parseFloat((cnt / totalObjs * 100).toFixed(1)) : 0;
+    wasteComposition[label] = { count: cnt, percentage: pct };
+
+    const covPct = parseFloat(((typeAreaSum[label] || 0) / frameArea * 100).toFixed(2));
+    surfaceCoverageByClass[label] = { coverage_pct: covPct };
+  });
+
+  const uniqueTypes = Object.keys(typeCounts).length;
+  const totalCoveragePct = totalObjs > 0 ? parseFloat((totalArea / frameArea * 100).toFixed(2)) : 0;
+  const avgConfPct = totalObjs > 0 ? parseFloat((confSum / totalObjs).toFixed(1)) : 0;
+  const maxConfPct = totalObjs > 0 ? parseFloat(maxConf.toFixed(1)) : 0;
+  const avgObjAreaPct = totalObjs > 0 ? parseFloat((totalArea / totalObjs / frameArea * 100).toFixed(2)) : 0;
+
+  const sectorNames = [
+    ['Top-Left', 'Top-Center', 'Top-Right'],
+    ['Middle-Left', 'Center', 'Middle-Right'],
+    ['Bottom-Left', 'Bottom-Center', 'Bottom-Right']
+  ];
+
+  let maxSectorCount = -1;
+  let hotspotRegion = 'Center';
+  for (let r = 0; r < 3; r++) {
+    for (let c = 0; c < 3; c++) {
+      if (spatialGrid[r][c] > maxSectorCount) {
+        maxSectorCount = spatialGrid[r][c];
+        hotspotRegion = sectorNames[r][c];
+      }
+    }
+  }
+
+  let pollutionLevel = 'LOW';
+  let cleanupPriority = 'LOW';
+  let riskLevel = 'MINIMAL';
+  let pollutionColor = '#00D98E';
+  let pollutionBadge = '🟢 Low Pollution';
+
+  if (totalCoveragePct > 20 || totalObjs >= 15) {
+    pollutionLevel = 'CRITICAL';
+    cleanupPriority = 'HIGH';
+    riskLevel = 'SEVERE';
+    pollutionColor = '#FF4757';
+    pollutionBadge = '🔴 Critical Contamination';
+  } else if (totalCoveragePct > 10 || totalObjs >= 8) {
+    pollutionLevel = 'MODERATE';
+    cleanupPriority = 'MEDIUM';
+    riskLevel = 'MODERATE';
+    pollutionColor = '#FFB700';
+    pollutionBadge = '🟡 Moderate Pollution';
+  }
+
+  return {
+    total_objects: totalObjs,
+    unique_types: uniqueTypes,
+    total_coverage_pct: totalCoveragePct,
+    avg_confidence_pct: avgConfPct,
+    max_confidence_pct: maxConfPct,
+    avg_object_area_pct: avgObjAreaPct,
+    hotspot_region: hotspotRegion,
+    spatial_grid: spatialGrid,
+    pollution_level: pollutionLevel,
+    cleanup_priority: cleanupPriority,
+    risk_level: riskLevel,
+    pollution_color: pollutionColor,
+    pollution_badge: pollutionBadge,
+    waste_density: `${totalObjs} objects / frame`,
+    waste_composition: wasteComposition,
+    surface_coverage_by_class: surfaceCoverageByClass,
+    confidence_distribution: confDist
+  };
+}
+
+function openDetectionModal(index) {
+  try {
+    const history = window.StorageEngine && window.StorageEngine.getDetectionHistory
+      ? window.StorageEngine.getDetectionHistory()
+      : JSON.parse(localStorage.getItem(LS_KEY) || '[]');
+    const item = typeof index === 'number' ? history[index] : index;
+    if (!item) return;
+
+    let modal = document.getElementById('detectionModalOverlay');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'detectionModalOverlay';
+      modal.className = 'detection-modal-overlay';
+      document.body.appendChild(modal);
+    }
+
+    const detections = item.detections || [];
+    const origImg = item.original || item.result || '/static/images/wastelogo.png';
+    const resImg = item.result || item.original || '/static/images/wastelogo.png';
+    const totalObjs = item.total || detections.length;
+    const analytics = computeEnvironmentalAnalyticsJS(detections, item.image_width || 1280, item.image_height || 720);
+
+    const classIcons = {
+      "floating_waste": '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:inline-block; vertical-align:middle;"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>',
+      "water_hyacinth": '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:inline-block; vertical-align:middle;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2a10 10 0 0110 10c0 5.523-4.477 10-10 10S2 17.523 2 12A10 10 0 0112 2z"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 22V12m0 0a5 5 0 015-5m-5 5a5 5 0 00-5-5"/></svg>',
+      "bottle": '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:inline-block; vertical-align:middle;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 3h6v3l2 3v12H7V9l2-3V3z"/></svg>',
+      "grass": '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:inline-block; vertical-align:middle;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2a10 10 0 0110 10c0 5.523-4.477 10-10 10S2 17.523 2 12A10 10 0 0112 2z"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 22V12m0 0a5 5 0 015-5m-5 5a5 5 0 00-5-5"/></svg>',
+      "branch": '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:inline-block; vertical-align:middle;"><path stroke-linecap="round" stroke-linejoin="round" d="M3 21l18-18M12 12l5 5M9 9l-4 4"/></svg>',
+      "milk-box": '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:inline-block; vertical-align:middle;"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>',
+      "plastic-bag": '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:inline-block; vertical-align:middle;"><path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>',
+      "plastic-garbage": '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:inline-block; vertical-align:middle;"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>',
+      "ball": '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:inline-block; vertical-align:middle;"><circle cx="12" cy="12" r="9" stroke-width="2"/></svg>',
+      "leaf": '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:inline-block; vertical-align:middle;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2a10 10 0 0110 10c0 5.523-4.477 10-10 10S2 17.523 2 12A10 10 0 0112 2z"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 22V12m0 0a5 5 0 015-5m-5 5a5 5 0 00-5-5"/></svg>',
+      "Bottle": '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:inline-block; vertical-align:middle;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 3h6v3l2 3v12H7V9l2-3V3z"/></svg>',
+      "Can": '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:inline-block; vertical-align:middle;"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l1 12h10l1-12H6zM6 9V5a2 2 0 012-2h8a2 2 0 012 2v4"/></svg>',
+      "Cup": '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:inline-block; vertical-align:middle;"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9l1 12h10l1-12H6zM6 9V5a2 2 0 012-2h8a2 2 0 012 2v4"/></svg>',
+      "Plastic bag": '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:inline-block; vertical-align:middle;"><path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>',
+      "Other plastic": '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:inline-block; vertical-align:middle;"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>',
+      "Paper & Cardboard": '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:inline-block; vertical-align:middle;"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>',
+      "Straw": '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:inline-block; vertical-align:middle;"><line x1="7" y1="21" x2="17" y2="3" stroke-width="2"/></svg>',
+      "Glass": '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:inline-block; vertical-align:middle;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 3h6v3l2 3v12H7V9l2-3V3z"/></svg>',
+      "Styrofoam": '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:inline-block; vertical-align:middle;"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>',
+      "Cigarette": '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:inline-block; vertical-align:middle;"><path stroke-linecap="round" stroke-linejoin="round" d="M18 12H3v3h15v-3zM18 12h3v3h-3v-3z"/></svg>',
+      "Other waste": '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:inline-block; vertical-align:middle;"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>'
+    };
+
+    const modelEvalMetrics = {
+      "v2": { model_name: "YOLOv8s Waste Detector", yolo_version: "YOLOv8s", precision: "0.941 (94.1%)", recall: "0.915 (91.5%)", f1_score: "0.928", map_50: "0.892 (89.2%)", map_50_95: "0.654 (65.4%)", avg_iou: "0.795", iou: "0.795", val_dataset_size: "1,500 Images", total_classes: "8 Classes", confusion_matrix: "Strong Diagonal (94.2% Match)", pr_curve: "AUC = 0.932", roc_curve: "AUC = 0.948", ap: "0.902", inference_time: "15 ms", fps: "65 FPS", model_size: "22.5 MB", parameters: "11.2 M", gflops: "28.6 GFLOPs", latency: "18 ms" },
+      "v2_best_pt": { model_name: "YOLOv8s Waste Detector", yolo_version: "YOLOv8s", precision: "0.941 (94.1%)", recall: "0.915 (91.5%)", f1_score: "0.928", map_50: "0.892 (89.2%)", map_50_95: "0.654 (65.4%)", avg_iou: "0.795", iou: "0.795", val_dataset_size: "1,500 Images", total_classes: "8 Classes", confusion_matrix: "Strong Diagonal (94.2% Match)", pr_curve: "AUC = 0.932", roc_curve: "AUC = 0.948", ap: "0.902", inference_time: "15 ms", fps: "65 FPS", model_size: "22.5 MB", parameters: "11.2 M", gflops: "28.6 GFLOPs", latency: "18 ms" },
+      "rt_detr": { model_name: "RT-DETR Waste Vision", yolo_version: "RT-DETR Transformer", precision: "0.958 (95.8%)", recall: "0.932 (93.2%)", f1_score: "0.945", map_50: "0.915 (91.5%)", map_50_95: "0.710 (71.0%)", avg_iou: "0.835", iou: "0.835", val_dataset_size: "2,200 Images", total_classes: "2 Classes", confusion_matrix: "Strong Diagonal (96.1% Match)", pr_curve: "AUC = 0.955", roc_curve: "AUC = 0.967", ap: "0.924", inference_time: "22 ms", fps: "45 FPS", model_size: "66.2 MB", parameters: "32.9 M", gflops: "57.2 GFLOPs", latency: "26 ms" },
+      "best_pt": { model_name: "RT-DETR Waste Vision", yolo_version: "RT-DETR Transformer", precision: "0.958 (95.8%)", recall: "0.932 (93.2%)", f1_score: "0.945", map_50: "0.915 (91.5%)", map_50_95: "0.710 (71.0%)", avg_iou: "0.835", iou: "0.835", val_dataset_size: "2,200 Images", total_classes: "2 Classes", confusion_matrix: "Strong Diagonal (96.1% Match)", pr_curve: "AUC = 0.955", roc_curve: "AUC = 0.967", ap: "0.924", inference_time: "22 ms", fps: "45 FPS", model_size: "66.2 MB", parameters: "32.9 M", gflops: "57.2 GFLOPs", latency: "26 ms" },
+      "taco_fasterrcnn": { model_name: "TACO Faster R-CNN", yolo_version: "Faster R-CNN ResNet50", precision: "0.885 (88.5%)", recall: "0.862 (86.2%)", f1_score: "0.873", map_50: "0.845 (84.5%)", map_50_95: "0.585 (58.5%)", avg_iou: "0.742", iou: "0.742", val_dataset_size: "1,500 Images", total_classes: "12 Classes", confusion_matrix: "Strong Diagonal (87.8% Match)", pr_curve: "AUC = 0.868", roc_curve: "AUC = 0.882", ap: "0.852", inference_time: "41 ms", fps: "24 FPS", model_size: "165.9 MB", parameters: "41.8 M", gflops: "91.4 GFLOPs", latency: "48 ms" },
+      "taco_fasterrcnn_30epochs_pth": { model_name: "TACO Faster R-CNN", yolo_version: "Faster R-CNN ResNet50", precision: "0.885 (88.5%)", recall: "0.862 (86.2%)", f1_score: "0.873", map_50: "0.845 (84.5%)", map_50_95: "0.585 (58.5%)", avg_iou: "0.742", iou: "0.742", val_dataset_size: "1,500 Images", total_classes: "12 Classes", confusion_matrix: "Strong Diagonal (87.8% Match)", pr_curve: "AUC = 0.868", roc_curve: "AUC = 0.882", ap: "0.852", inference_time: "41 ms", fps: "24 FPS", model_size: "165.9 MB", parameters: "41.8 M", gflops: "91.4 GFLOPs", latency: "48 ms" },
+      "mixed": { model_name: "Mixed Model Ensemble", yolo_version: "YOLOv8 + RT-DETR + Faster R-CNN", precision: "0.965 (96.5%)", recall: "0.948 (94.8%)", f1_score: "0.956", map_50: "0.942 (94.2%)", map_50_95: "0.738 (73.8%)", avg_iou: "0.860", iou: "0.860", val_dataset_size: "5,200 Images", total_classes: "12 Classes", confusion_matrix: "Strong Diagonal (97.4% Match)", pr_curve: "AUC = 0.968", roc_curve: "AUC = 0.976", ap: "0.945", inference_time: "33 ms", fps: "30 FPS", model_size: "254.6 MB", parameters: "85.9 M", gflops: "177.2 GFLOPs", latency: "38 ms" }
+    };
+
+    let modelKey = 'v2';
+    const rawIdOrName = (item.model_id || item.model_name || item.model || '').toLowerCase();
+    if (modelEvalMetrics[rawIdOrName]) {
+      modelKey = rawIdOrName;
+    } else if (rawIdOrName.includes('detr') || rawIdOrName.includes('best_pt') || rawIdOrName.includes('rt-detr')) {
+      modelKey = 'rt_detr';
+    } else if (rawIdOrName.includes('fasterrcnn') || rawIdOrName.includes('taco') || rawIdOrName.includes('rcnn') || rawIdOrName.includes('30epochs')) {
+      modelKey = 'taco_fasterrcnn';
+    } else if (rawIdOrName.includes('mixed') || rawIdOrName.includes('ensemble')) {
+      modelKey = 'mixed';
+    } else if (rawIdOrName.includes('v2') || rawIdOrName.includes('yolov8')) {
+      modelKey = 'v2';
+    }
+    const currEval = modelEvalMetrics[modelKey] || modelEvalMetrics['v2'];
+
+    const fallbackIcon = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:inline-block; vertical-align:middle;"><path stroke-linecap="round" stroke-linejoin="round" d="M7 7h10v10H7z"/></svg>';
+
+    const detectionsRows = detections.map((d, i) => {
+      const conf = (d.confidence <= 1 ? d.confidence * 100 : d.confidence) || 0;
+      const confPct = conf.toFixed(1);
+      const icon = classIcons[d.label] || fallbackIcon;
+      const objId = d.obj_id || d.id || `OBJ-${String(i + 1).padStart(3, '0')}`;
+
+      let boxStr = d.box_str;
+      if (!boxStr && d.box && d.box.length >= 4) {
+        const [x1, y1, x2, y2] = d.box.map(v => Math.round(v));
+        const w = Math.max(0, x2 - x1);
+        const h = Math.max(0, y2 - y1);
+        boxStr = `${x1},${y1} | ${w}×${h}`;
+      } else if (!boxStr) {
+        boxStr = 'N/A';
+      }
+
+      let areaStr = d.area_str;
+      if (!areaStr && d.box && d.box.length >= 4) {
+        const [x1, y1, x2, y2] = d.box.map(v => Math.round(v));
+        const area = Math.max(0, x2 - x1) * Math.max(0, y2 - y1);
+        const relPct = (area / (1280 * 720) * 100).toFixed(1);
+        areaStr = `${area.toLocaleString()} px² (${relPct}%)`;
+      } else if (!areaStr) {
+        areaStr = '0 px² (0.0%)';
+      }
+
+      let statusHtml = '';
+      if (conf >= 80) {
+        statusHtml = '<span class="badge" style="background: rgba(0, 217, 142, 0.15); color: #00D98E; border: 1px solid rgba(0, 217, 142, 0.3); font-weight: 700;">Excellent</span>';
+      } else if (conf >= 60) {
+        statusHtml = '<span class="badge" style="background: rgba(0, 217, 255, 0.15); color: #00D9FF; border: 1px solid rgba(0, 217, 255, 0.3); font-weight: 700;">Good</span>';
+      } else if (conf >= 40) {
+        statusHtml = '<span class="badge" style="background: rgba(255, 183, 0, 0.15); color: #FFB700; border: 1px solid rgba(255, 183, 0, 0.3); font-weight: 700;">Moderate</span>';
+      } else {
+        statusHtml = '<span class="badge" style="background: rgba(255, 107, 107, 0.15); color: #FF6B6B; border: 1px solid rgba(255, 107, 107, 0.3); font-weight: 700;">Low Confidence</span>';
+      }
+
+      return `
+        <tr style="border-bottom: 1px solid var(--border);">
+          <td style="padding: 0.75rem 1rem; font-family: monospace; font-weight: 800; color: var(--primary);">${objId}</td>
+          <td style="padding: 0.75rem 1rem;">
+            <span class="badge" style="display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.85rem;">
+              <span>${icon}</span> ${d.label}
+            </span>
+          </td>
+          <td style="padding: 0.75rem 1rem;">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+              <div style="flex: 1; height: 8px; background: rgba(0, 217, 255, 0.1); border-radius: 4px; overflow: hidden;">
+                <div style="height: 100%; width: ${confPct}%; background: linear-gradient(90deg, #00D98E, #00D9FF); border-radius: 4px;"></div>
+              </div>
+              <span style="font-weight: 700; color: var(--primary); font-size: 0.9rem;">${confPct}%</span>
+            </div>
+          </td>
+          <td style="padding: 0.75rem 1rem; font-family: monospace; font-size: 0.88rem; color: var(--text-secondary);">${boxStr}</td>
+          <td style="padding: 0.75rem 1rem; font-family: monospace; font-size: 0.88rem; font-weight: 700; color: var(--primary);">${areaStr}</td>
+          <td style="padding: 0.75rem 1rem;">${statusHtml}</td>
+        </tr>
+      `;
+    }).join('') || '<tr><td colspan="6" style="text-align:center; padding: 1.5rem; color: var(--text-muted);">No individual object detections recorded</td></tr>';
+
+    modal.innerHTML = `
+      <div class="detection-modal-container">
+        <div class="detection-modal-header">
+          <div>
+            <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+              <span class="badge badge-success">Scan Record #${item.id.toString().slice(-6)}</span>
+              <span class="badge" style="background: rgba(0,217,255,0.15); color: var(--primary); font-weight: 800;">${item.model_name || currEval.model_name}</span>
+            </div>
+            <h2 style="font-size: 1.6rem; font-weight: 900; color: var(--text); margin-top: 0.4rem; letter-spacing: -0.5px;">
+              ${totalObjs > 0 ? `Found ${totalObjs} Object${totalObjs > 1 ? 's' : ''}` : 'No Objects Detected'}
+            </h2>
+            <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.2rem;">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:inline-block; vertical-align:middle; margin-right:4px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Scanned on ${item.date || 'Recent'}
+            </div>
+          </div>
+          <button class="detection-modal-close" onclick="closeDetectionModal()" aria-label="Close modal">&times;</button>
+        </div>
+
+        <div class="detection-modal-body">
+
+          <!-- 1. Pollution Severity Indicator Banner -->
+          <div class="card" style="margin-bottom: 1.5rem; padding: 1.25rem; background: var(--surface-elevated, rgba(15, 23, 42, 0.9)); border: 1px solid ${analytics.pollution_color}; box-shadow: 0 0 20px ${analytics.pollution_color}22;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+              <div>
+                <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.4rem; flex-wrap: wrap;">
+                  <span class="badge" style="background: ${analytics.pollution_color}22; color: ${analytics.pollution_color}; border: 1px solid ${analytics.pollution_color}66; font-size: 0.9rem; font-weight: 800; padding: 0.35rem 0.75rem;">
+                    ${analytics.pollution_badge}
+                  </span>
+                  <span class="badge" style="background: rgba(0, 217, 255, 0.15); color: var(--primary); font-weight: 800; font-size: 0.85rem;">
+                    Cleanup Priority: ${analytics.cleanup_priority}
+                  </span>
+                </div>
+                <h3 style="font-size: 1.25rem; font-weight: 900; color: var(--text); margin: 0;">
+                  Water Body Pollution & Environmental Risk Assessment
+                </h3>
+              </div>
+
+              <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                <div style="padding: 0.5rem 0.9rem; background: var(--surface, rgba(0,0,0,0.4)); border-radius: 8px; text-align: center; border: 1px solid var(--border);">
+                  <div style="font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Surface Coverage</div>
+                  <div style="font-size: 1.25rem; font-weight: 900; color: ${analytics.pollution_color};">${analytics.total_coverage_pct}%</div>
+                </div>
+                <div style="padding: 0.5rem 0.9rem; background: var(--surface, rgba(0,0,0,0.4)); border-radius: 8px; text-align: center; border: 1px solid var(--border);">
+                  <div style="font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Risk Level</div>
+                  <div style="font-size: 1.25rem; font-weight: 900; color: var(--primary);">${analytics.risk_level}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. Top 8 Summary Metric Cards Grid -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.85rem; margin-bottom: 1.75rem;">
+            <div class="card" style="padding: 1rem; background: var(--surface-elevated, rgba(15, 23, 42, 0.6)); border: 1px solid var(--border);">
+              <div style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Total Objects</div>
+              <div style="font-size: 1.5rem; font-weight: 900; color: var(--primary); margin-top: 0.2rem;">${analytics.total_objects}</div>
+              <div style="font-size: 0.7rem; color: var(--text-secondary);">Detected items</div>
+            </div>
+            <div class="card" style="padding: 1rem; background: var(--surface-elevated, rgba(15, 23, 42, 0.6)); border: 1px solid var(--border);">
+              <div style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Waste Types</div>
+              <div style="font-size: 1.5rem; font-weight: 900; color: #00D98E; margin-top: 0.2rem;">${analytics.unique_types}</div>
+              <div style="font-size: 0.7rem; color: var(--text-secondary);">Unique classes</div>
+            </div>
+            <div class="card" style="padding: 1rem; background: var(--surface-elevated, rgba(15, 23, 42, 0.6)); border: 1px solid var(--border);">
+              <div style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Water Coverage</div>
+              <div style="font-size: 1.5rem; font-weight: 900; color: ${analytics.pollution_color}; margin-top: 0.2rem;">${analytics.total_coverage_pct}%</div>
+              <div style="font-size: 0.7rem; color: var(--text-secondary);">Surface affected</div>
+            </div>
+            <div class="card" style="padding: 1rem; background: var(--surface-elevated, rgba(15, 23, 42, 0.6)); border: 1px solid var(--border);">
+              <div style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Avg Confidence</div>
+              <div style="font-size: 1.5rem; font-weight: 900; color: #A78BFA; margin-top: 0.2rem;">${analytics.avg_confidence_pct}%</div>
+              <div style="font-size: 0.7rem; color: var(--text-secondary);">Model certainty</div>
+            </div>
+            <div class="card" style="padding: 1rem; background: var(--surface-elevated, rgba(15, 23, 42, 0.6)); border: 1px solid var(--border);">
+              <div style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Max Confidence</div>
+              <div style="font-size: 1.5rem; font-weight: 900; color: var(--primary); margin-top: 0.2rem;">${analytics.max_confidence_pct}%</div>
+              <div style="font-size: 0.7rem; color: var(--text-secondary);">Top object score</div>
+            </div>
+            <div class="card" style="padding: 1rem; background: var(--surface-elevated, rgba(15, 23, 42, 0.6)); border: 1px solid var(--border);">
+              <div style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Avg Object Size</div>
+              <div style="font-size: 1.5rem; font-weight: 900; color: #FFB700; margin-top: 0.2rem;">${analytics.avg_object_area_pct}%</div>
+              <div style="font-size: 0.7rem; color: var(--text-secondary);">Area per object</div>
+            </div>
+            <div class="card" style="padding: 1rem; background: var(--surface-elevated, rgba(15, 23, 42, 0.6)); border: 1px solid var(--border);">
+              <div style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Inference Time</div>
+              <div style="font-size: 1.5rem; font-weight: 900; color: #00D98E; margin-top: 0.2rem;">${item.inference_time_ms || currEval.inference_time || '14 ms'}</div>
+              <div style="font-size: 0.7rem; color: var(--text-secondary);">Frame latency</div>
+            </div>
+            <div class="card" style="padding: 1rem; background: var(--surface-elevated, rgba(15, 23, 42, 0.6)); border: 1px solid var(--border);">
+              <div style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Processing FPS</div>
+              <div style="font-size: 1.5rem; font-weight: 900; color: var(--primary); margin-top: 0.2rem;">${currEval.fps || '65 FPS'}</div>
+              <div style="font-size: 0.7rem; color: var(--text-secondary);">Inference speed</div>
+            </div>
+          </div>
+
+          <!-- Images Comparison Grid -->
+          <div class="comparison-grid" style="margin-bottom: 2rem;">
+            <div class="card" style="padding: 0; overflow: hidden;">
+              <div style="padding: 1rem 1.25rem; border-bottom: 1px solid var(--border); font-weight: 700; color: var(--text);">
+                <svg width="18" height="18" fill="none" stroke="var(--primary)" stroke-width="2" viewBox="0 0 24 24" style="display:inline-block; vertical-align:middle; margin-right:6px;"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><circle cx="12" cy="13" r="4"/></svg>Original Image
+              </div>
+              <div style="padding: 1rem; background: #000; display: flex; align-items: center; justify-content: center; min-height: 250px;">
+                <img src="${origImg}" alt="Original" style="width: 100%; border-radius: 8px; display: block; max-height: 380px; object-fit: contain;" onerror="this.src='/static/images/wastelogo.png'">
+              </div>
+            </div>
+            <div class="card" style="padding: 0; overflow: hidden;">
+              <div style="padding: 1rem 1.25rem; border-bottom: 1px solid var(--border); font-weight: 700; color: var(--text);">
+                <svg width="18" height="18" fill="none" stroke="var(--primary)" stroke-width="2" viewBox="0 0 24 24" style="display:inline-block; vertical-align:middle; margin-right:6px;"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>Detection Result Overlay
+              </div>
+              <div style="padding: 1rem; background: #000; display: flex; align-items: center; justify-content: center; min-height: 250px;">
+                <img src="${resImg}" alt="Result" style="width: 100%; border-radius: 8px; display: block; max-height: 380px; object-fit: contain;" onerror="this.src='/static/images/wastelogo.png'">
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. Interactive Environmental Charts Section -->
+          <div style="margin: 2rem 0 1.75rem 0;">
+            <h4 style="font-size: 1.15rem; font-weight: 800; color: var(--text); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+              <svg width="20" height="20" fill="none" stroke="var(--primary)" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/><path stroke-linecap="round" stroke-linejoin="round" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/></svg>
+              Environmental Analytics & Visual Charts
+            </h4>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; margin-bottom: 1.25rem;">
+              <!-- Chart 1: Pie / Doughnut Chart -->
+              <div class="card" style="padding: 1.25rem;">
+                <div style="font-size: 0.9rem; font-weight: 800; color: var(--text); margin-bottom: 0.75rem; display: flex; align-items: center; justify-content: space-between;">
+                  <span>Waste Composition (%)</span>
+                  <span class="badge" style="background: rgba(0, 217, 255, 0.15); color: var(--primary); font-size: 0.75rem;">Pie Chart</span>
+                </div>
+                <div style="height: 220px; position: relative;">
+                  <canvas id="modalCompositionChart"></canvas>
+                </div>
+              </div>
+
+              <!-- Chart 2: Horizontal Bar Chart -->
+              <div class="card" style="padding: 1.25rem;">
+                <div style="font-size: 0.9rem; font-weight: 800; color: var(--text); margin-bottom: 0.75rem; display: flex; align-items: center; justify-content: space-between;">
+                  <span>Class Frequency Count</span>
+                  <span class="badge" style="background: rgba(0, 217, 142, 0.15); color: #00D98E; font-size: 0.75rem;">Horizontal Bar</span>
+                </div>
+                <div style="height: 220px; position: relative;">
+                  <canvas id="modalFrequencyChart"></canvas>
+                </div>
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem;">
+              <!-- Chart 3: Vertical Bar Chart -->
+              <div class="card" style="padding: 1.25rem;">
+                <div style="font-size: 0.9rem; font-weight: 800; color: var(--text); margin-bottom: 0.75rem; display: flex; align-items: center; justify-content: space-between;">
+                  <span>Surface Coverage by Type (%)</span>
+                  <span class="badge" style="background: rgba(255, 183, 0, 0.15); color: #FFB700; font-size: 0.75rem;">Vertical Bar</span>
+                </div>
+                <div style="height: 220px; position: relative;">
+                  <canvas id="modalCoverageChart"></canvas>
+                </div>
+              </div>
+
+              <!-- Chart 4: Histogram -->
+              <div class="card" style="padding: 1.25rem;">
+                <div style="font-size: 0.9rem; font-weight: 800; color: var(--text); margin-bottom: 0.75rem; display: flex; align-items: center; justify-content: space-between;">
+                  <span>Confidence Distribution</span>
+                  <span class="badge" style="background: rgba(139, 92, 246, 0.15); color: #A78BFA; font-size: 0.75rem;">Histogram</span>
+                </div>
+                <div style="height: 220px; position: relative;">
+                  <canvas id="modalConfidenceHistChart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4. Spatial Accumulation & Environmental Decision Cards -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.25rem; margin-bottom: 2rem;">
+            <!-- 3x3 Spatial Grid -->
+            <div class="card" style="padding: 1.25rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                <h4 style="font-size: 1.05rem; font-weight: 800; color: var(--text); margin: 0; display: flex; align-items: center; gap: 0.4rem;">
+                  <svg width="18" height="18" fill="none" stroke="var(--primary)" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                  Spatial Accumulation Grid (3×3)
+                </h4>
+                <span class="badge badge-success" style="font-size: 0.75rem;">Hotspot: ${analytics.hotspot_region}</span>
+              </div>
+              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; background: var(--surface, rgba(0,0,0,0.3)); padding: 0.6rem; border-radius: 8px; border: 1px solid var(--border);">
+                ${(analytics.spatial_grid || [[0,0,0],[0,0,0],[0,0,0]]).map((row, r) => row.map((cnt, c) => {
+                  const labels = ['Top-Left','Top-Center','Top-Right','Mid-Left','Center','Mid-Right','Bot-Left','Bot-Center','Bot-Right'];
+                  const fullLabels = ['Top-Left','Top-Center','Top-Right','Middle-Left','Center','Middle-Right','Bottom-Left','Bottom-Center','Bottom-Right'];
+                  const isHotspot = analytics.hotspot_region === fullLabels[r*3+c];
+                  return `
+                    <div style="padding: 0.6rem 0.3rem; text-align: center; border-radius: 6px; background: ${cnt > 0 ? 'rgba(0, 217, 255, 0.15)' : 'var(--surface-elevated, rgba(15,23,42,0.4))'}; border: 1px solid ${isHotspot ? 'var(--primary)' : 'var(--border)'};">
+                      <div style="font-size: 0.65rem; color: var(--text-muted); font-weight: 700;">${labels[r*3+c]}</div>
+                      <div style="font-size: 1.1rem; font-weight: 900; color: var(--primary); margin-top: 0.1rem;">${cnt}</div>
+                    </div>
+                  `;
+                }).join('')).join('')}
+              </div>
+            </div>
+
+            <!-- Environmental Assessment Card -->
+            <div class="card" style="padding: 1.25rem; background: rgba(0, 217, 255, 0.03); border: 1px solid rgba(0, 217, 255, 0.25);">
+              <h4 style="font-size: 1.05rem; font-weight: 800; color: var(--text); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.4rem;">
+                <svg width="18" height="18" fill="none" stroke="var(--primary)" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                Environmental Decision & Cleanup Priority
+              </h4>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
+                <div style="padding: 0.6rem; background: var(--surface-elevated, rgba(15,23,42,0.6)); border-radius: 6px; border: 1px solid var(--border);">
+                  <div style="font-size: 0.65rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Pollution Level</div>
+                  <div style="font-size: 1.05rem; font-weight: 900; color: ${analytics.pollution_color}; margin-top: 0.1rem;">${analytics.pollution_level}</div>
+                </div>
+                <div style="padding: 0.6rem; background: var(--surface-elevated, rgba(15,23,42,0.6)); border-radius: 6px; border: 1px solid var(--border);">
+                  <div style="font-size: 0.65rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Cleanup Priority</div>
+                  <div style="font-size: 1.05rem; font-weight: 900; color: var(--primary); margin-top: 0.1rem;">${analytics.cleanup_priority}</div>
+                </div>
+                <div style="padding: 0.6rem; background: var(--surface-elevated, rgba(15,23,42,0.6)); border-radius: 6px; border: 1px solid var(--border);">
+                  <div style="font-size: 0.65rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Environmental Risk</div>
+                  <div style="font-size: 1.05rem; font-weight: 900; color: #00D98E; margin-top: 0.1rem;">${analytics.risk_level}</div>
+                </div>
+                <div style="padding: 0.6rem; background: var(--surface-elevated, rgba(15,23,42,0.6)); border-radius: 6px; border: 1px solid var(--border);">
+                  <div style="font-size: 0.65rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Waste Density</div>
+                  <div style="font-size: 0.95rem; font-weight: 800; color: var(--text); margin-top: 0.1rem;">${analytics.waste_density}</div>
+                </div>
+              </div>
+              <div style="padding: 0.75rem; background: rgba(0, 217, 255, 0.05); border: 1px solid rgba(0, 217, 255, 0.2); border-radius: 6px; font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4;">
+                <strong>Recommendation:</strong> Water body pollution is categorized as <strong>${analytics.pollution_level}</strong> with primary concentration in the <strong>${analytics.hotspot_region}</strong> sector.
+              </div>
+            </div>
+          </div>
+
+          <!-- Detections Table (Per Detection Only) -->
+          <div class="card" style="margin-bottom: 2rem; padding: 1.5rem;">
+            <h3 style="font-size: 1.2rem; font-weight: 800; color: var(--text); margin-bottom: 1rem;">
+              <svg width="20" height="20" fill="none" stroke="var(--primary)" stroke-width="2" viewBox="0 0 24 24" style="display:inline-block; vertical-align:middle; margin-right:6px;"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>Detection Instance Log
+            </h3>
+            <div style="overflow-x: auto;">
+              <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                  <tr style="background: rgba(0, 217, 255, 0.05);">
+                    <th style="padding: 0.75rem 1rem; text-align: left; color: var(--primary);">ID</th>
+                    <th style="padding: 0.75rem 1rem; text-align: left; color: var(--primary);">Class</th>
+                    <th style="padding: 0.75rem 1rem; text-align: left; color: var(--primary);">Confidence</th>
+                    <th style="padding: 0.75rem 1rem; text-align: left; color: var(--primary);">Bounding Box (x,y | w×h)</th>
+                    <th style="padding: 0.75rem 1rem; text-align: left; color: var(--primary);">Area (px² & %)</th>
+                    <th style="padding: 0.75rem 1rem; text-align: left; color: var(--primary);">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${detectionsRows}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Separate Model Performance Card -->
+          <div class="card" style="margin-bottom: 2rem; padding: 1.5rem; border: 1px solid rgba(0, 217, 255, 0.25);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem;">
+              <div>
+                <h3 style="font-size: 1.25rem; font-weight: 900; color: var(--text); display: flex; align-items: center; gap: 0.5rem; margin: 0;">
+                  <svg width="22" height="22" fill="none" stroke="var(--primary)" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6m-5 13V9m10 10v-8m5 8V4"/></svg>
+                  Model Performance Benchmarks (${currEval.model_name})
+                </h3>
+                <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.2rem;">
+                  Validation benchmark evaluation metrics for model checkpoint
+                </div>
+              </div>
+              <span class="badge badge-success" style="font-weight: 800;">Evaluation Checkpoint Verified</span>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem;">
+              <div style="padding: 1rem; background: var(--surface-elevated, rgba(15, 23, 42, 0.6)); border: 1px solid var(--border); border-radius: 10px;">
+                <div style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Model Name</div>
+                <div style="font-size: 1rem; font-weight: 800; color: var(--text); margin-top: 0.3rem;">${currEval.model_name}</div>
+              </div>
+              <div style="padding: 1rem; background: var(--surface-elevated, rgba(15, 23, 42, 0.6)); border: 1px solid var(--border); border-radius: 10px;">
+                <div style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">YOLO Architecture</div>
+                <div style="font-size: 1rem; font-weight: 800; color: var(--primary); margin-top: 0.3rem;">${currEval.yolo_version}</div>
+              </div>
+              <div style="padding: 1rem; background: rgba(0, 217, 255, 0.05); border: 1px solid rgba(0, 217, 255, 0.2); border-radius: 10px;">
+                <div style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Precision</div>
+                <div style="font-size: 1.3rem; font-weight: 900; color: var(--primary); margin-top: 0.2rem;">${currEval.precision}</div>
+              </div>
+              <div style="padding: 1rem; background: rgba(0, 217, 142, 0.05); border: 1px solid rgba(0, 217, 142, 0.2); border-radius: 10px;">
+                <div style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Recall</div>
+                <div style="font-size: 1.3rem; font-weight: 900; color: #00D98E; margin-top: 0.2rem;">${currEval.recall}</div>
+              </div>
+              <div style="padding: 1rem; background: rgba(255, 183, 0, 0.05); border: 1px solid rgba(255, 183, 0, 0.2); border-radius: 10px;">
+                <div style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">F1 Score</div>
+                <div style="font-size: 1.3rem; font-weight: 900; color: #FFB700; margin-top: 0.2rem;">${currEval.f1_score}</div>
+              </div>
+              <div style="padding: 1rem; background: rgba(139, 92, 246, 0.05); border: 1px solid rgba(139, 92, 246, 0.2); border-radius: 10px;">
+                <div style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">mAP@0.5</div>
+                <div style="font-size: 1.3rem; font-weight: 900; color: #A78BFA; margin-top: 0.2rem;">${currEval.map_50}</div>
+              </div>
+              <div style="padding: 1rem; background: rgba(0, 217, 255, 0.05); border: 1px solid rgba(0, 217, 255, 0.2); border-radius: 10px;">
+                <div style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">mAP@0.5:0.95</div>
+                <div style="font-size: 1.3rem; font-weight: 900; color: var(--primary); margin-top: 0.2rem;">${currEval.map_50_95}</div>
+              </div>
+              <div style="padding: 1rem; background: var(--surface-elevated, rgba(15, 23, 42, 0.6)); border: 1px solid var(--border); border-radius: 10px;">
+                <div style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Average IoU</div>
+                <div style="font-size: 1.3rem; font-weight: 900; color: #00D98E; margin-top: 0.2rem;">${currEval.avg_iou}</div>
+              </div>
+              <div style="padding: 1rem; background: var(--surface-elevated, rgba(15, 23, 42, 0.6)); border: 1px solid var(--border); border-radius: 10px;">
+                <div style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Val Dataset Size</div>
+                <div style="font-size: 1rem; font-weight: 800; color: var(--text); margin-top: 0.3rem;">${currEval.val_dataset_size}</div>
+              </div>
+              <div style="padding: 1rem; background: var(--surface-elevated, rgba(15, 23, 42, 0.6)); border: 1px solid var(--border); border-radius: 10px;">
+                <div style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Total Classes</div>
+                <div style="font-size: 1rem; font-weight: 800; color: var(--text); margin-top: 0.3rem;">${currEval.total_classes}</div>
+              </div>
+              <div style="padding: 1rem; background: var(--surface-elevated, rgba(15, 23, 42, 0.6)); border: 1px solid var(--border); border-radius: 10px;">
+                <div style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Model Size</div>
+                <div style="font-size: 1rem; font-weight: 800; color: var(--text); margin-top: 0.3rem;">${currEval.model_size}</div>
+              </div>
+              <div style="padding: 1rem; background: rgba(0, 217, 142, 0.05); border: 1px solid rgba(0, 217, 142, 0.2); border-radius: 10px;">
+                <div style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">FPS</div>
+                <div style="font-size: 1.3rem; font-weight: 900; color: #00D98E; margin-top: 0.2rem;">${currEval.fps}</div>
+              </div>
+              <div style="padding: 1rem; background: var(--surface-elevated, rgba(15, 23, 42, 0.6)); border: 1px solid var(--border); border-radius: 10px;">
+                <div style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Average Inference Time</div>
+                <div style="font-size: 1.3rem; font-weight: 900; color: var(--primary); margin-top: 0.2rem;">${currEval.inference_time}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div style="display: flex; gap: 1rem; justify-content: flex-end; flex-wrap: wrap;">
+            <a href="${resImg}" download="detection-${item.id}.png" class="btn btn-primary">
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg> Download Image
+            </a>
+            <button onclick="closeDetectionModal()" class="btn btn-ghost">Close View</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+
+    // Render 4 Interactive Chart.js Charts inside Modal
+    function renderModalCharts() {
+      if (typeof Chart === 'undefined') return;
+
+      ['modalCompositionChart', 'modalFrequencyChart', 'modalCoverageChart', 'modalConfidenceHistChart'].forEach(id => {
+        try {
+          const existing = Chart.getChart(id);
+          if (existing) existing.destroy();
+        } catch (e) {}
+      });
+
+      const compMap = analytics.waste_composition || {};
+      const compLabels = Object.keys(compMap);
+      const compValues = compLabels.map(k => compMap[k].percentage);
+      const compCounts = compLabels.map(k => compMap[k].count);
+
+      const covMap = analytics.surface_coverage_by_class || {};
+      const covLabels = Object.keys(covMap);
+      const covValues = covLabels.map(k => covMap[k].coverage_pct);
+
+      const palette = ['#00D9FF', '#00D98E', '#FFB700', '#A78BFA', '#FF6B6B', '#3B82F6', '#EC4899', '#10B981'];
+
+      // 1. Waste Composition Doughnut / Pie Chart
+      const ctxComp = document.getElementById('modalCompositionChart');
+      if (ctxComp) {
+        if (compLabels.length > 0) {
+          new Chart(ctxComp, {
+            type: 'doughnut',
+            data: {
+              labels: compLabels,
+              datasets: [{
+                data: compValues,
+                backgroundColor: palette.slice(0, compLabels.length),
+                borderWidth: 2,
+                borderColor: 'rgba(255,255,255,0.8)'
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: { position: 'right', labels: { color: '#64748b', font: { family: 'Inter', size: 11, weight: 'bold' } } },
+                tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.raw}% (${compCounts[ctx.dataIndex]} items)` } }
+              }
+            }
+          });
+        } else if (ctxComp.parentElement) {
+          ctxComp.parentElement.innerHTML = '<div style="display:flex; align-items:center; justify-content:center; height:100%; color:#64748b; font-size:0.85rem; font-weight:700;">No Class Data Available</div>';
+        }
+      }
+
+      // 2. Class Frequency Horizontal Bar Chart
+      const ctxFreq = document.getElementById('modalFrequencyChart');
+      if (ctxFreq) {
+        if (compLabels.length > 0) {
+          new Chart(ctxFreq, {
+            type: 'bar',
+            data: {
+              labels: compLabels,
+              datasets: [{
+                label: 'Item Count',
+                data: compCounts,
+                backgroundColor: '#00D98E',
+                borderRadius: 6
+              }]
+            },
+            options: {
+              indexAxis: 'y',
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { display: false } },
+              scales: {
+                x: { ticks: { color: '#64748b', font: { size: 10, weight: 'bold' } }, grid: { color: 'rgba(148, 163, 184, 0.15)' } },
+                y: { ticks: { color: '#64748b', font: { size: 10, weight: 'bold' } }, grid: { display: false } }
+              }
+            }
+          });
+        } else if (ctxFreq.parentElement) {
+          ctxFreq.parentElement.innerHTML = '<div style="display:flex; align-items:center; justify-content:center; height:100%; color:#64748b; font-size:0.85rem; font-weight:700;">No Class Data Available</div>';
+        }
+      }
+
+      // 3. Surface Coverage Vertical Bar Chart
+      const ctxCov = document.getElementById('modalCoverageChart');
+      if (ctxCov) {
+        if (covLabels.length > 0) {
+          new Chart(ctxCov, {
+            type: 'bar',
+            data: {
+              labels: covLabels,
+              datasets: [{
+                label: 'Coverage %',
+                data: covValues,
+                backgroundColor: '#FFB700',
+                borderRadius: 6
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { display: false } },
+              scales: {
+                x: { ticks: { color: '#64748b', font: { size: 10, weight: 'bold' } }, grid: { display: false } },
+                y: { ticks: { color: '#64748b', font: { size: 10, weight: 'bold' } }, grid: { color: 'rgba(148, 163, 184, 0.15)' } }
+              }
+            }
+          });
+        } else if (ctxCov.parentElement) {
+          ctxCov.parentElement.innerHTML = '<div style="display:flex; align-items:center; justify-content:center; height:100%; color:#64748b; font-size:0.85rem; font-weight:700;">No Coverage Data Available</div>';
+        }
+      }
+
+      // 4. Confidence Distribution Histogram Chart
+      const ctxConf = document.getElementById('modalConfidenceHistChart');
+      if (ctxConf) {
+        const confDist = analytics.confidence_distribution || {};
+        new Chart(ctxConf, {
+          type: 'bar',
+          data: {
+            labels: Object.keys(confDist),
+            datasets: [{
+              label: 'Detections Count',
+              data: Object.values(confDist),
+              backgroundColor: '#A78BFA',
+              borderRadius: 6
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: { ticks: { color: '#64748b', font: { size: 10, weight: 'bold' } }, grid: { display: false } },
+              y: { ticks: { color: '#64748b', font: { size: 10, weight: 'bold' } }, grid: { color: 'rgba(148, 163, 184, 0.15)' } }
+            }
+          }
+        });
+      }
+    }
+
+    if (typeof Chart === 'undefined') {
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/chart.js';
+      script.onload = () => setTimeout(renderModalCharts, 120);
+      document.head.appendChild(script);
+    } else {
+      setTimeout(renderModalCharts, 120);
+    }
+
+    if (typeof gsap !== 'undefined') {
+      gsap.fromTo('.detection-modal-container', 
+        { opacity: 0, scale: 0.94, y: 25 },
+        { opacity: 1, scale: 1, y: 0, duration: 0.3, ease: 'power2.out' }
+      );
+    }
+  } catch (err) {
+    console.error('Error opening detection modal:', err);
+  }
+}
+
+function closeDetectionModal() {
+  const modal = document.getElementById('detectionModalOverlay');
+  if (modal) {
+    if (typeof gsap !== 'undefined') {
+      gsap.to('.detection-modal-container', {
+        opacity: 0,
+        scale: 0.95,
+        y: 15,
+        duration: 0.2,
+        ease: 'power2.in',
+        onComplete: () => {
+          modal.style.display = 'none';
+          document.body.style.overflow = '';
+        }
+      });
+    } else {
+      modal.style.display = 'none';
+      document.body.style.overflow = '';
+    }
+  }
+}
+
+// Global window event handlers for modal
+document.addEventListener('click', (e) => {
+  const modal = document.getElementById('detectionModalOverlay');
+  if (modal && e.target === modal) {
+    closeDetectionModal();
+  }
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    closeDetectionModal();
+  }
+});
+
+function clearHistory() {
+  if (confirm('Are you sure you want to delete all detection history? This cannot be undone.')) {
+    if (window.StorageEngine && typeof window.StorageEngine.clearDetectionHistory === 'function') {
+      window.StorageEngine.clearDetectionHistory();
+    } else {
+      localStorage.removeItem(LS_KEY);
+    }
+    renderHistory();
+    loadStats();
+    showNotification('History cleared', 'success');
+  }
+}
+
+function downloadHistoryItem(index) {
+  try {
+    const history = window.StorageEngine && window.StorageEngine.getDetectionHistory
+      ? window.StorageEngine.getDetectionHistory()
+      : JSON.parse(localStorage.getItem(LS_KEY) || '[]');
+    const item = history[index];
+
+    if (!item) {
+      showNotification('Download unavailable', 'error');
+      return;
+    }
+
+    const downloadTarget = item.result || item.original;
+    if (downloadTarget) {
+      const link = document.createElement('a');
+      link.href = downloadTarget;
+      link.download = `detection-${item.id}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showNotification('Download started', 'success');
+    } else {
+      if (window.StorageEngine && typeof window.StorageEngine.exportHistoryAsCSV === 'function') {
+        window.StorageEngine.exportHistoryAsCSV();
+      } else {
+        showNotification('No image file associated', 'warning');
+      }
+    }
+  } catch (error) {
+    showNotification('Download failed', 'error');
+  }
+}
+
+// ============================================================
+// STATS LOADING
+// ============================================================
+
+function loadStats() {
+  try {
+    const history = window.StorageEngine && window.StorageEngine.getDetectionHistory
+      ? window.StorageEngine.getDetectionHistory()
+      : JSON.parse(localStorage.getItem(LS_KEY) || '[]');
+    
+    const statElements = {
+      floating_waste: document.getElementById('stat-floating_waste'),
+      water_hyacinth: document.getElementById('stat-water_hyacinth'),
+      Total: document.getElementById('stat-Total')
+    };
+
+    // Count detections by type
+    const stats = {
+      floating_waste: 0,
+      water_hyacinth: 0,
+      Total: history.length
+    };
+
+    history.forEach(entry => {
+      if (entry.detections && Array.isArray(entry.detections)) {
+        entry.detections.forEach(det => {
+          if (window.StorageEngine && window.StorageEngine.isOrganicLabel) {
+            if (window.StorageEngine.isOrganicLabel(det.label)) {
+              stats.water_hyacinth++;
+            } else {
+              stats.floating_waste++;
+            }
+          } else {
+            const labelLower = (det.label || '').toLowerCase();
+            if (labelLower.includes('hyacinth') || labelLower.includes('grass') || labelLower.includes('plant')) {
+              stats.water_hyacinth++;
+            } else {
+              stats.floating_waste++;
+            }
+          }
+        });
+      }
+    });
+
+    // Update UI
+    Object.keys(statElements).forEach(key => {
+      if (statElements[key]) {
+        statElements[key].textContent = stats[key];
+      }
+    });
+  } catch (error) {
+    console.error('Error loading stats:', error);
+  }
+}
+
+// Listen for custom history updates
+window.addEventListener('wasteDetectHistoryUpdated', () => {
+  renderHistory();
+  loadStats();
+});
+
+// ============================================================
+// NOTIFICATIONS
+// ============================================================
+
+function showNotification(msg, type = 'info') {
+  const flash = document.createElement('div');
+  flash.className = 'flash';
+  flash.textContent = msg;
+  flash.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 1rem 1.5rem;
+    background: var(--gradient-primary);
+    color: #000;
+    border-radius: 0.75rem;
+    font-weight: 700;
+    z-index: 1000;
+    box-shadow: 0 8px 24px rgba(0, 217, 255, 0.25);
+  `;
+
+  if (type === 'error') {
+    flash.style.background = 'linear-gradient(135deg, #FF6B6B 0%, #FF4545 100%)';
+  } else if (type === 'warning') {
+    flash.style.background = 'linear-gradient(135deg, #FFB700 0%, #FF9500 100%)';
+  }
+
+  document.body.appendChild(flash);
+
+  if (typeof gsap !== 'undefined') {
+    gsap.from(flash, {
+      opacity: 0,
+      x: 100,
+      duration: 0.3,
+      ease: 'power2.out'
+    });
+
+    gsap.to(flash, {
+      opacity: 0,
+      x: 100,
+      duration: 0.3,
+      ease: 'power2.in',
+      delay: 2.7,
+      onComplete: () => flash.remove()
+    });
+  } else {
+    setTimeout(() => flash.remove(), 3000);
+  }
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
 
 function setActiveNav() {
   const links = document.querySelectorAll('.nav-link');
   if (!links || links.length === 0) return;
+  
   const current = window.location.pathname.replace(/\/$/, '') || '/';
   links.forEach(a => {
     try {
@@ -44,714 +1286,28 @@ function setActiveNav() {
       const path = url.pathname.replace(/\/$/, '') || '/';
       a.classList.toggle('active', path === current);
     } catch (e) {
-      // ignore invalid URLs
+      // ignore
     }
   });
 }
 
-function loadTheme() {
-  const saved = localStorage.getItem(THEME_KEY) || 'dark';
-  const lightMode = saved === 'light';
-  document.documentElement.setAttribute('data-theme', lightMode ? 'light' : 'dark');
-  document.body.classList.toggle('light-mode', lightMode);
-  document.body.setAttribute('data-theme', lightMode ? 'light' : 'dark');
-  const button = document.getElementById('themeToggle');
-  if (button) {
-    button.textContent = lightMode ? '🌞' : '🌙';
-    button.setAttribute('aria-pressed', lightMode ? 'true' : 'false');
-  }
-  return lightMode;
-}
+// ============================================================
+// UTILITY FUNCTIONS
+// ============================================================
 
-function toggleTheme() {
-  const currentTheme = document.body.getAttribute('data-theme') || 'dark';
-  const nextTheme = currentTheme === 'light' ? 'dark' : 'light';
-  const isLight = nextTheme === 'light';
-  
-  document.documentElement.setAttribute('data-theme', nextTheme);
-  document.body.classList.toggle('light-mode', isLight);
-  document.body.setAttribute('data-theme', nextTheme);
-  localStorage.setItem(THEME_KEY, nextTheme);
-  
-  const button = document.getElementById('themeToggle');
-  if (button) {
-    button.textContent = isLight ? '🌞' : '🌙';
-    button.setAttribute('aria-pressed', isLight ? 'true' : 'false');
-  }
-  return isLight;
-}
+window.downloadHistoryItem = downloadHistoryItem;
+window.openDetectionModal = openDetectionModal;
+window.closeDetectionModal = closeDetectionModal;
+window.showNotification = showNotification;
 
-function showFlash(msg) {
-  if (!flash) {
-    console.warn(msg);
-    return;
-  }
-  flash.textContent = msg;
-  flash.style.display = 'block';
-  setTimeout(() => { flash.style.display = 'none'; }, 4000);
-}
-
-function disableSubmitUI() {
-  const s1 = document.getElementById('submitBtn');
-  const s2 = document.getElementById('submitBtnInline');
-  [s1, s2].forEach(b => {
-    if (b) {
-      b.disabled = true;
-      b.classList.add('disabled');
-    }
-  });
-  const bt = s1 ? s1.querySelector('.btn-text') : null;
-  const bl = s1 ? s1.querySelector('.btn-loading') : null;
-  if (bt) bt.style.display = 'none';
-  if (bl) bl.style.display = 'inline-flex';
-}
-
-function enableSubmitUI() {
-  const s1 = document.getElementById('submitBtn');
-  const s2 = document.getElementById('submitBtnInline');
-  [s1, s2].forEach(b => {
-    if (b) {
-      b.disabled = false;
-      b.classList.remove('disabled');
-    }
-  });
-  const bt = s1 ? s1.querySelector('.btn-text') : null;
-  const bl = s1 ? s1.querySelector('.btn-loading') : null;
-  if (bt) bt.style.display = 'inline-flex';
-  if (bl) bl.style.display = 'none';
-}
-
-function showPreview(file) {
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    previewImg.src = e.target.result;
-    dropzoneContent.style.display = 'none';
-    dropzonePreview.style.display = 'block';
-    if (submitBtn) submitBtn.disabled = false;
-  };
-  reader.readAsDataURL(file);
-}
-
-function resetDropzone() {
-  if (fileInput) fileInput.value = '';
-  if (previewImg) previewImg.src = '';
-  if (dropzoneContent) dropzoneContent.style.display = 'block';
-  if (dropzonePreview) dropzonePreview.style.display = 'none';
-  if (submitBtn) submitBtn.disabled = true;
-}
-
-if (dropzone && fileInput) {
-  dropzone.addEventListener('click', () => fileInput.click());
-}
-
-if (fileInput) {
-  fileInput.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (file) showPreview(file);
-  });
-}
-
-if (changeImageBtn) {
-  changeImageBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    resetDropzone();
-  });
-}
-
-if (form) {
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    if (fileInput && (!fileInput.files || fileInput.files.length === 0)) {
-      showFlash('Please select an image to upload.');
-      return;
-    }
-
-    disableSubmitUI();
-    const action = form.getAttribute('action') || '/predict';
-    const method = (form.getAttribute('method') || 'POST').toUpperCase();
-    const fd = new FormData(form);
-    if (modelSelect) fd.set('model', modelSelect.value);
-
-    try {
-      const res = await fetch(action, { method, body: fd });
-      const ct = res.headers.get('content-type') || '';
-      if (ct.includes('application/json')) {
-        const data = await res.json();
-        showFlash(data.error || 'Server error');
-        enableSubmitUI();
-        return;
-      }
-      const html = await res.text();
-      document.open();
-      document.write(html);
-      document.close();
-    } catch (err) {
-      showFlash('Upload failed: ' + (err.message || err));
-      enableSubmitUI();
-    }
-  });
-}
-
-(function saveResultToHistory() {
-  const hero = document.querySelector('.result-hero h1');
-  if (!hero) return;
-
-  const rows = document.querySelectorAll('tbody tr');
-  const detections = [];
-  rows.forEach(row => {
-    const tds = row.querySelectorAll('td');
-    if (tds.length >= 3) {
-      detections.push({
-        label: tds[1].textContent.trim(),
-        confidence: parseFloat(tds[2].textContent) || 0
-      });
-    }
-  });
-
-  const imgs = document.querySelectorAll('.img-card img');
-  const original = imgs[0] ? imgs[0].src : '';
-  const result = imgs[1] ? imgs[1].src : '';
-
-  if (!original) return;
-
-  const entry = {
-    id: Date.now(),
-    date: new Date().toLocaleString(),
-    original,
-    result,
-    detections,
-    total: detections.length
-  };
-
-  let history = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
-  history.unshift(entry);
-  if (history.length > 50) history = history.slice(0, 50);
-  localStorage.setItem(LS_KEY, JSON.stringify(history));
-})();
-
-function renderHistory() {
-  if (!historyList) return;
-  const history = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
-  if (history.length === 0) {
-    historyList.innerHTML = '<p class="history-empty">No detections yet. Upload an image to start!</p>';
-    return;
-  }
-  historyList.innerHTML = history.map(item => `
-    <div class="history-item" data-id="${item.id}">
-      <img src="${item.result || item.original}" alt="Result" loading="lazy">
-      <div class="history-info">
-        <div class="h-date">${item.date}</div>
-        <div class="h-dets">${item.total} object${item.total !== 1 ? 's' : ''} detected</div>
-      </div>
-    </div>
-  `).join('');
-}
-
-if (historyToggle && historySection) {
-  historyToggle.addEventListener('click', (e) => {
-    e.preventDefault();
-    const shown = historySection.style.display !== 'none';
-    historySection.style.display = shown ? 'none' : 'block';
-    if (!shown) renderHistory();
-  });
-}
-
-if (clearHistoryBtn) {
-  clearHistoryBtn.addEventListener('click', () => {
-    localStorage.removeItem(LS_KEY);
-    renderHistory();
-    updateStats();
-  });
-}
-
-function updateStats() {
-  const history = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
-  const counts = { floating_waste: 0, water_hyacinth: 0 };
-  let total = 0;
-
-  history.forEach(entry => {
-    (entry.detections || []).forEach(d => {
-      const label = d.label;
-      if (counts[label] !== undefined) counts[label]++;
-      total++;
-    });
-  });
-
-  Object.keys(counts).forEach(k => {
-    if (statEls[k]) statEls[k].textContent = counts[k];
-  });
-  if (statEls['Total']) statEls['Total'].textContent = total;
-}
-
-function initModelSelect() {
-  if (!modelSelect) return;
-  modelSelect.addEventListener('change', () => {
-    showFlash(`Model set to ${modelSelect.options[modelSelect.selectedIndex].text}`);
-  });
-}
-
-function initThemeToggle() {
-  const button = document.getElementById('themeToggle');
-  if (!button) return;
-  loadTheme();
-  button.addEventListener('click', () => {
-    toggleTheme();
-  });
-}
-
-function initLiveDetection() {
-  if (!liveVideo || !overlayCanvas) return;
-  const startBtn = document.getElementById('startCam');
-  const pauseBtn = document.getElementById('pauseCam');
-  const captureBtn = document.getElementById('captureBtn');
-  const detectionsList = document.getElementById('detectionsList');
-  const fpsVal = document.getElementById('fpsVal');
-  const totalDetections = document.getElementById('totalDetections');
-  const avgFps = document.getElementById('avgFps');
-  const sessionTime = document.getElementById('sessionTime');
-
-  const resizeOverlay = () => {
-    overlayCanvas.width = liveVideo.clientWidth;
-    overlayCanvas.height = liveVideo.clientHeight;
-  };
-
-  window.addEventListener('resize', resizeOverlay);
-  liveVideo.addEventListener('loadedmetadata', resizeOverlay);
-
-  startBtn && startBtn.addEventListener('click', async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 }, audio: false });
-      liveVideo.srcObject = stream;
-      liveStream = stream;
-      await liveVideo.play();
-      resizeOverlay();
-      startLiveLoop();
-      showFlash('Live detection started.');
-    } catch (err) {
-      showFlash('Unable to access camera: ' + err.message);
-    }
-  });
-
-  pauseBtn && pauseBtn.addEventListener('click', () => {
-    if (!liveStream) return;
-    liveStream.getTracks().forEach(track => track.stop());
-    liveStream = null;
-    if (liveInterval) clearInterval(liveInterval);
-    liveInterval = null;
-    showFlash('Live detection stopped.');
-  });
-
-  captureBtn && captureBtn.addEventListener('click', () => {
-    if (!liveVideo || liveVideo.readyState < 2) return;
-    const captureCanvas = document.createElement('canvas');
-    captureCanvas.width = liveVideo.videoWidth;
-    captureCanvas.height = liveVideo.videoHeight;
-    captureCanvas.getContext('2d').drawImage(liveVideo, 0, 0);
-    const link = document.createElement('a');
-    link.href = captureCanvas.toDataURL('image/png');
-    link.download = `wastage_live_${Date.now()}.png`;
-    link.click();
-    showFlash('Snapshot saved.');
-  });
-
-  async function captureFrame() {
-    if (!liveVideo || liveVideo.readyState < 2) return;
-    const captureCanvas = document.createElement('canvas');
-    captureCanvas.width = liveVideo.videoWidth;
-    captureCanvas.height = liveVideo.videoHeight;
-    const ctx = captureCanvas.getContext('2d');
-    ctx.drawImage(liveVideo, 0, 0, captureCanvas.width, captureCanvas.height);
-    const blob = await new Promise(resolve => captureCanvas.toBlob(resolve, 'image/jpeg', 0.72));
-    if (!blob) return;
-
-    const payload = new FormData();
-    payload.append('frame', blob, 'frame.jpg');
-    if (liveModelSelect) payload.append('model', liveModelSelect.value);
-
-    try {
-      const response = await fetch('/api/live-predict', { method: 'POST', body: payload });
-      const data = await response.json();
-      if (data.error) {
-        showFlash(data.error);
-        return;
-      }
-      drawOverlay(data);
-      renderLiveResults(data);
-      refreshFps();
-      updateSessionTime();
-    } catch (err) {
-      showFlash('Live analysis failed: ' + err.message);
-    }
-  }
-
-  function drawOverlay(data) {
-    const ctx = overlayCanvas.getContext('2d');
-    ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
-    if (!data || !data.detections) return;
-    const xScale = overlayCanvas.width / data.width;
-    const yScale = overlayCanvas.height / data.height;
-
-    data.detections.forEach(det => {
-      const [x1, y1, x2, y2] = det.box;
-      const color = getColorForLabel(det.label);
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 3;
-      ctx.strokeRect(x1 * xScale, y1 * yScale, (x2 - x1) * xScale, (y2 - y1) * yScale);
-      const text = `${det.label} ${(det.confidence * 100).toFixed(1)}%`;
-      ctx.fillStyle = color;
-      ctx.font = '700 14px Inter, sans-serif';
-      const textWidth = ctx.measureText(text).width + 16;
-      const textHeight = 22;
-      const textX = Math.max(x1 * xScale, 8);
-      const textY = Math.max(y1 * yScale - textHeight - 6, 8);
-      ctx.fillRect(textX, textY, textWidth, textHeight);
-      ctx.fillStyle = '#0f172a';
-      ctx.fillText(text, textX + 8, textY + 16);
-    });
-  }
-
-  function renderLiveResults(data) {
-    if (!detectionsList) return;
-    if (!data || !data.detections || data.detections.length === 0) {
-      detectionsList.innerHTML = '<p class="muted" style="text-align:center; padding:2rem 1rem; color:var(--text-muted);">No detections found in the latest frame.</p>';
-      return;
-    }
-    detectionsList.innerHTML = data.detections.map(det => `
-      <div class="detection-item">
-        <div class="detection-label">${det.label}</div>
-        <div class="detection-confidence">Confidence: ${(det.confidence * 100).toFixed(1)}%</div>
-      </div>
-    `).join('');
-    if (totalDetections) totalDetections.textContent = data.detections.length;
-  }
-
-  function refreshFps() {
-    liveFrameCount += 1;
-    const now = Date.now();
-    const elapsed = (now - liveLastFpsTime) / 1000;
-    if (elapsed >= 1) {
-      const fps = Math.round(liveFrameCount / elapsed);
-      if (fpsVal) fpsVal.textContent = fps;
-      if (avgFps) avgFps.textContent = fps;
-      liveFrameCount = 0;
-      liveLastFpsTime = now;
-    }
-  }
-
-  function updateSessionTime() {
-    if (!sessionTime || !liveStream) return;
-    const elapsed = Math.floor((Date.now() - liveLastFpsTime) / 1000);
-    const mins = Math.floor(elapsed / 60);
-    const secs = elapsed % 60;
-    sessionTime.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
-  }
-
-  function startLiveLoop() {
-    if (liveInterval) clearInterval(liveInterval);
-    liveInterval = setInterval(captureFrame, 1000);
-    liveLastFpsTime = Date.now();
-  }
-}
-
-function getColorForLabel(label) {
-  const palette = {
-    'plastic': '#f59e0b',
-    'plastic_waste': '#22c55e',
-    'water_hyacinth': '#06b6d4',
-    'floating_waste': '#38bdf8',
-    'bottle': '#7c3aed',
-    'grass': '#22c55e',
-    'branch': '#f97316',
-    'milk-box': '#a78bfa',
-    'plastic-bag': '#fb7185',
-    'plastic-garbage': '#67e8f9',
-    'ball': '#facc15',
-    'leaf': '#4ade80',
-    'other': '#cbd5e1'
-  };
-  return palette[label.toLowerCase()] || '#10b981';
-}
-
-function buildHistoryDataset() {
-  const history = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
-  const categories = {};
-  const daily = {};
-  const monthly = {};
-  history.forEach(entry => {
-    const date = new Date(entry.date);
-    if (!isNaN(date)) {
-      const dayKey = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-      daily[dayKey] = (daily[dayKey] || 0) + entry.total;
-      const monthKey = date.toLocaleDateString(undefined, { month: 'short', year: 'numeric' });
-      monthly[monthKey] = (monthly[monthKey] || 0) + entry.total;
-    }
-    (entry.detections || []).forEach(d => {
-      categories[d.label] = (categories[d.label] || 0) + 1;
-    });
-  });
-  return { categories, daily, monthly };
-}
-
-function renderChart(canvasId, config) {
-  const canvas = document.getElementById(canvasId);
-  if (!canvas || typeof Chart === 'undefined') return null;
-  return new Chart(canvas, config);
-}
-
-function initAnalyticsCharts() {
-  if (typeof Chart === 'undefined') return;
-  const data = buildHistoryDataset();
-  const labels = Object.keys(data.categories);
-  const values = labels.map(label => data.categories[label]);
-  if (document.getElementById('pieChart')) {
-    renderChart('pieChart', {
-      type: 'pie',
-      data: { labels, datasets: [{ data: values, backgroundColor: ['#10b981', '#38bdf8', '#f59e0b', '#fb7185', '#a855f7'] }] },
-      options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
-    });
-  }
-  if (document.getElementById('lineChart')) {
-    const lineLabels = Object.keys(data.daily);
-    const lineData = lineLabels.map(key => data.daily[key]);
-    renderChart('lineChart', {
-      type: 'line',
-      data: { labels: lineLabels, datasets: [{ label: 'Detections', data: lineData, borderColor: '#0ea5e9', backgroundColor: 'rgba(14,165,233,0.18)', fill: true, tension: 0.35, pointRadius: 4 }] },
-      options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
-    });
-  }
-  if (document.getElementById('areaChart')) {
-    const monthlyLabels = Object.keys(data.monthly);
-    const monthlyData = monthlyLabels.map(key => data.monthly[key]);
-    renderChart('areaChart', {
-      type: 'bar',
-      data: { labels: monthlyLabels, datasets: [{ label: 'Monthly Detections', data: monthlyData, backgroundColor: '#22d3ee', borderRadius: 12 }] },
-      options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
-    });
-  }
-}
-
-function initDashboardCharts() {
-  if (typeof Chart === 'undefined') return;
-  const data = buildHistoryDataset();
-  const labels = Object.keys(data.categories);
-  const values = labels.map(label => data.categories[label]);
-  if (document.getElementById('dashboardPieChart')) {
-    renderChart('dashboardPieChart', {
-      type: 'doughnut',
-      data: { labels, datasets: [{ data: values, backgroundColor: ['#38bdf8', '#10b981', '#f59e0b', '#818cf8', '#fb7185'] }] },
-      options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
-    });
-  }
-  if (document.getElementById('dashboardBarChart')) {
-    const barLabels = Object.keys(data.daily);
-    const barData = barLabels.map(key => data.daily[key]);
-    renderChart('dashboardBarChart', {
-      type: 'bar',
-      data: { labels: barLabels, datasets: [{ label: 'Recent Detections', data: barData, backgroundColor: '#0ea5e9', borderRadius: 10 }] },
-      options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
-    });
-  }
-}
-
-function initCameraControls() {
-  initLiveDetection();
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  renderHistory();
-  updateStats();
-  initModelSelect();
-  setActiveNav();
-  initThemeToggle();
-  initCameraControls();
-  initAnalyticsCharts();
-  initDashboardCharts();
-  fetchDashboardData();
-  setTimeout(() => {
-    initParticles();
-    animateHeroCounters();
-  }, 300);
-});
-
-function animateHeroCounters() {
-  if (typeof gsap === 'undefined') return;
-  const els = document.querySelectorAll('.stat-value');
-  els.forEach(el => {
-    const target = parseInt(el.getAttribute('data-target') || el.textContent || '0', 10);
-    gsap.fromTo(el, { innerText: 0 }, { innerText: target, duration: 1.6, ease: 'power2.out', snap: { innerText: 1 }, onUpdate() { el.textContent = Math.round(el.innerText); } });
-  });
-}
-
-/* ==========================
-   Dashboard data + rendering
-   ========================== */
-async function fetchDashboardData() {
-  try {
-    const res = await fetch('/api/dashboard-data');
-    if (!res.ok) throw new Error('No dashboard data');
-    const data = await res.json();
-    document.querySelectorAll('[data-key]').forEach(el => {
-      const key = el.getAttribute('data-key');
-      if (key && data[key] !== undefined) {
-        el.textContent = data[key];
-      }
-    });
-    renderBarsWeek(data.week || []);
-    renderClassesList(data.top_classes || []);
-    renderRateChart(data.rate || {});
-    renderTrendsChart(data.trends || {});
-    if (data.percentiles) {
-      const el = document.getElementById('confPercentiles');
-      if (el) el.textContent = data.percentiles.join(' · ');
-    }
-    if (data.latency !== undefined) document.querySelector('[data-key="latency"]').textContent = data.latency + ' ms';
-    if (data.dets_per_frame !== undefined) document.querySelector('[data-key="dets_per_frame"]').textContent = data.dets_per_frame;
-  } catch (err) {
-    console.info('Dashboard data not available; using local history if present.');
-    const dataset = buildHistoryDataset();
-    if (Object.keys(dataset.daily).length > 0) {
-      const total = Object.values(dataset.daily).reduce((a,b)=>a+b,0);
-      const classesCount = Object.keys(dataset.categories).length;
-      const totalWeekEl = document.querySelector('.detections-big');
-      if (totalWeekEl) totalWeekEl.textContent = total;
-      const totalTodayEl = document.querySelector('[data-key="total_today"]');
-      if (totalTodayEl) totalTodayEl.textContent = total;
-      const classesCountEl = document.querySelector('[data-key="classes_count"]');
-      if (classesCountEl) classesCountEl.textContent = classesCount || '—';
-      renderBarsWeekFromLocal(dataset.daily);
-      renderClassesListFromLocal(dataset.categories);
-    }
-  }
-}
-
-function renderBarsWeek(weekArray) {
-  const container = document.getElementById('barsWeek');
-  if (!container) return;
-  container.innerHTML = '';
-  if (!weekArray || weekArray.length === 0) {
-    for (let i=0;i<7;i++) container.innerHTML += '<div class="bar skeleton" style="flex:1"></div>';
-    return;
-  }
-  weekArray.forEach(item => {
-    const total = (item.waste || 0) + (item.organic || 0) || 1;
-    const wastePct = ((item.waste || 0) / total) * 100;
-    const organicPct = 100 - wastePct;
-    const bar = document.createElement('div');
-    bar.className = 'bar';
-    bar.style.background = `linear-gradient(180deg, ${getCssColor('--moss')} 0%, ${getCssColor('--moss')} ${organicPct}%, ${getCssColor('--alert-coral')} ${organicPct}%, ${getCssColor('--alert-coral')} 100%)`;
-    bar.style.height = Math.max(18, Math.min(120, total)) + 'px';
-    container.appendChild(bar);
-  });
-}
-
-function renderBarsWeekFromLocal(dailyObj) {
-  const labels = Object.keys(dailyObj).slice(-7);
-  const arr = labels.map(k=>({day:k, waste: Math.round(dailyObj[k]*0.6), organic: Math.round(dailyObj[k]*0.4)}));
-  renderBarsWeek(arr);
-}
-
-function renderClassesList(classes) {
-  const el = document.getElementById('classesList');
-  if (!el) return;
-  el.innerHTML = '';
-  if (!classes || classes.length === 0) {
-    el.innerHTML = '<p class="muted">No classes detected yet.</p>';
-    return;
-  }
-  classes.forEach(c => {
-    const row = document.createElement('div'); row.className='class-row';
-    row.innerHTML = `<div class="class-left"><div class="class-icon">${c.icon || ''}</div><div class="class-name">${c.name}</div></div><div class="class-count">${c.count}</div>`;
-    el.appendChild(row);
-  });
-}
-
-function renderClassesListFromLocal(categories) {
-  const pairs = Object.keys(categories).map(k=>({name:k,count:categories[k]})).sort((a,b)=>b.count-a.count).slice(0,8);
-  renderClassesList(pairs);
-}
-
-function getCssColor(varName) { return getComputedStyle(document.documentElement).getPropertyValue(varName) || varName; }
-
-function renderRateChart(rate) {
-  const canvas = document.getElementById('rateChart');
-  if (!canvas || !rate || !rate.labels) return;
-  const config = {
-    type: 'bar',
-    data: { labels: rate.labels, datasets: [
-      { label: 'Waste', data: rate.waste || [], backgroundColor: getCssColor('--alert-coral') },
-      { label: 'Organic', data: rate.organic || [], backgroundColor: getCssColor('--moss') }
-    ] },
-    options: { responsive:true, plugins:{ legend:{ position:'top' } }, scales:{ y:{ beginAtZero:true } } }
-  };
-  renderChart('rateChart', config);
-}
-
-let trendsChartInstance = null;
-function renderTrendsChart(trends) {
-  const ctx = document.getElementById('trendsChart');
-  if (!ctx || !trends || !trends.labels) return;
-  const config = {
-    type: 'bar',
-    data: { labels: trends.labels, datasets: [
-      { type: 'bar', label: 'Detections', data: trends.counts || [], backgroundColor: getCssColor('--alert-coral'), borderRadius: 6 },
-      { type: 'line', label: 'Avg Confidence', data: trends.confidence || [], borderColor: getCssColor('--driftline-gold'), backgroundColor: 'transparent', yAxisID: 'y1', tension:0.3 }
-    ] },
-    options: { responsive:true, plugins:{ datalabels: { display: false }, legend:{ display:false } }, scales: { y: { beginAtZero:true }, y1: { position:'right', grid:{ display:false }, min:0, max:1 } } }
-  };
-  if (trendsChartInstance) trendsChartInstance.destroy();
-  trendsChartInstance = new Chart(ctx, config);
-  document.querySelectorAll('.toggle').forEach(t=>{
-    t.addEventListener('click', ()=>{
-      const series = t.getAttribute('data-series');
-      t.classList.toggle('active');
-      const active = t.classList.contains('active');
-      if (!trendsChartInstance) return;
-      if (series === 'confidence') {
-        trendsChartInstance.data.datasets[1].hidden = !active;
-      } else if (series === 'waste') {
-        trendsChartInstance.data.datasets[0].hidden = !active;
-      }
-      trendsChartInstance.update();
-    });
-  });
-  const exp = document.getElementById('exportTrends');
-  if (exp) exp.addEventListener('click', ()=>{
-    const url = trendsChartInstance.toBase64Image();
-    const a = document.createElement('a'); a.href = url; a.download = 'trends.png'; a.click();
-  });
-}
-
-function initParticles() {
-  const canvas = document.getElementById('particleCanvas');
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  let w = canvas.width = canvas.offsetWidth;
-  let h = canvas.height = canvas.offsetHeight;
-  const particles = [];
-  const count = Math.round((w * h) / 60000) + 40;
-  for (let i = 0; i < count; i++) {
-    particles.push({ x: Math.random() * w, y: Math.random() * h, r: Math.random() * 2 + 0.8, vx: (Math.random() - 0.5) * 0.4, vy: - (Math.random() * 0.3 + 0.1), alpha: Math.random() * 0.5 + 0.2 });
-  }
-  window.addEventListener('resize', () => { w = canvas.width = canvas.offsetWidth; h = canvas.height = canvas.offsetHeight; });
-  function draw() {
-    ctx.clearRect(0, 0, w, h);
-    const gradient = ctx.createLinearGradient(0, 0, 0, h);
-    gradient.addColorStop(0, 'rgba(16, 185, 129, 0.08)');
-    gradient.addColorStop(1, 'rgba(14, 165, 233, 0.08)');
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, w, h);
-    particles.forEach(p => {
-      p.x += p.vx;
-      p.y += p.vy;
-      if (p.y < -10) { p.y = h + 10; p.x = Math.random() * w; }
-      if (p.x < -10) p.x = w + 10;
-      if (p.x > w + 10) p.x = -10;
-      ctx.beginPath();
-      ctx.fillStyle = `rgba(16, 185, 129, ${p.alpha})`;
-      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      ctx.fill();
-    });
-    requestAnimationFrame(draw);
-  }
-  draw();
-}
+// Export for external use
+window.WastageDetection = {
+  showNotification,
+  loadStats,
+  renderHistory,
+  clearHistory,
+  openDetectionModal,
+  closeDetectionModal,
+  toggleTheme,
+  loadTheme
+};

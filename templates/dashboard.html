@@ -1,25 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard — WaterGuard AI</title>
+  <title>Dashboard — WastageDetection</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800;900&family=Inter:wght@300;400;600;700;800;900&display=swap"
+    rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 </head>
+
 <body>
+  <!-- Premium Navbar -->
   <nav class="navbar premium">
     <div class="nav-inner">
       <div class="nav-left">
         <div class="brand">
-          <div class="brand-mark">🌊</div>
+          <img class="brand-logo" src="{{ url_for('static', filename='images/wastelogo.png') }}" alt="AquaVision Logo"
+            style="height: 44px; width: auto; object-fit: contain; filter: drop-shadow(0 0 8px rgba(0, 217, 255, 0.4));" />
           <div class="brand-text">
-            <div class="brand-title">WaterGuard AI</div>
-            <div class="brand-sub">Water Waste Detection</div>
+            <div class="brand-title">AquaVision</div>
+            <div class="brand-sub">AI Waste Detection</div>
           </div>
         </div>
         <ul class="nav-links">
@@ -32,124 +39,308 @@
         </ul>
       </div>
       <div class="nav-right">
-        <button class="icon-btn" id="themeToggle" aria-label="Toggle theme">🌓</button>
-        <button class="icon-btn" id="notifBtn" aria-label="Notifications">🔔</button>
-        <div class="profile-pill">JD ▾</div>
+        <button class="icon-btn" id="themeToggle" aria-label="Toggle theme"></button>
+        <button class="icon-btn" id="notifBtn" aria-label="Notifications"><svg xmlns="http://www.w3.org/2000/svg"
+            width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+          </svg></button>
+
       </div>
     </div>
   </nav>
+
   <main class="dashboard">
-    <div class="header-row" style="max-width:1200px;margin:0 auto 18px;">
-      <div>
-        <div class="page-title">Driftline — Detection Dashboard</div>
-        <div class="page-sub">Here's a snapshot of your detection activity</div>
+    <!-- Page Header with Stats -->
+    <div style="max-width: 1200px; margin: 0 auto 2rem;">
+      <div style="margin-bottom: 2rem;">
+        <h1
+          style="font-size: 2.8rem; font-weight: 900; color: var(--text); letter-spacing: -1px; margin-bottom: 0.5rem;">
+          Dashboard
+        </h1>
+        <p style="color: var(--text-muted); font-size: 1.05rem;">
+          Real-time overview of your detection activity and system performance
+        </p>
       </div>
-      <div class="stat-pills">
-        <div class="stat-pill" id="pill-confidence">
-          <div class="pill-icon" style="background:linear-gradient(90deg,var(--driftline-gold),var(--alert-coral));">%</div>
-          <div>
-            <div class="pill-label">Avg confidence</div>
-            <div class="pill-value" data-key="avg_confidence">—</div>
+
+      <!-- Key Metrics -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+        <div class="card" style="padding: 1.5rem;">
+          <div
+            style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.5rem;">
+            Avg Confidence
+          </div>
+          <div style="font-size: 2rem; font-weight: 900; color: var(--primary);">
+            <span id="pill-confidence">—</span>%
           </div>
         </div>
-        <div class="stat-pill" id="pill-detections">
-          <div class="pill-icon" style="background:var(--alert-coral);">#</div>
-          <div>
-            <div class="pill-label">Total detections (today)</div>
-            <div class="pill-value" data-key="total_today">—</div>
+        <div class="card" style="padding: 1.5rem;">
+          <div
+            style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.5rem;">
+            Today's Detections
+          </div>
+          <div style="font-size: 2rem; font-weight: 900; color: #FF6B6B;">
+            <span id="pill-detections">—</span>
           </div>
         </div>
-        <div class="stat-pill" id="pill-classes">
-          <div class="pill-icon" style="background:var(--moss);">C</div>
-          <div>
-            <div class="pill-label">Classes detected</div>
-            <div class="pill-value" data-key="classes_count">—</div>
+        <div class="card" style="padding: 1.5rem;">
+          <div
+            style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.5rem;">
+            Classes Detected
+          </div>
+          <div style="font-size: 2rem; font-weight: 900; color: #00D98E;">
+            <span id="pill-classes">—</span>
           </div>
         </div>
       </div>
     </div>
 
+    <!-- Main Dashboard Grid -->
     <div class="dashboard-grid">
+      <!-- Detections Card -->
       <section class="card card-detections">
-        <div class="detections-hero">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.5rem;">
+          <h3
+            style="font-size: 1.15rem; font-weight: 800; color: var(--text); display: flex; align-items: center; gap: 0.5rem; margin: 0;">
+            <svg width="24" height="24" fill="none" stroke="var(--primary)" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6m-5 13V9m10 10v-8m5 8V4" />
+            </svg> Weekly Overview
+          </h3>
+
+          <!-- Two-Tone Interactive Legend -->
+          <div style="display: flex; align-items: center; gap: 1rem; font-size: 0.8rem; font-weight: 700; background: rgba(0, 217, 255, 0.05); padding: 0.35rem 0.85rem; border-radius: 20px; border: 1px solid rgba(0, 217, 255, 0.15);">
+            <div style="display: flex; align-items: center; gap: 0.4rem; color: #00D9FF;">
+              <span style="width: 10px; height: 10px; border-radius: 3px; background: linear-gradient(135deg, #00D9FF, #0088FF); display: inline-block; box-shadow: 0 0 8px rgba(0,217,255,0.6);"></span> Waste
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.4rem; color: #00D98E;">
+              <span style="width: 10px; height: 10px; border-radius: 3px; background: linear-gradient(135deg, #00D98E, #009966); display: inline-block; box-shadow: 0 0 8px rgba(0,217,142,0.6);"></span> Organic
+            </div>
+          </div>
+        </div>
+
+        <!-- Metric Summaries -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.25rem; background: rgba(0, 217, 255, 0.03); padding: 1rem 1.25rem; border-radius: 12px; border: 1px solid rgba(0, 217, 255, 0.1);">
           <div>
-            <div class="detections-big" data-key="total_week">—</div>
-            <div class="detections-sub">Scans per hour</div>
+            <div style="font-size: 2.4rem; font-weight: 900; color: var(--primary); line-height: 1;" id="barsWeek">—</div>
+            <div style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600; margin-top: 0.3rem;">Avg Scans / Day</div>
           </div>
-          <div style="text-align:right;">
-            <div class="muted">Weekly breakdown</div>
-            <div class="muted" style="font-size:12px;">Two-tone bars show waste / organic split</div>
+          <div style="text-align: right;">
+            <div style="font-size: 1.5rem; font-weight: 900; color: var(--text);" id="weeklyTotalSum">0</div>
+            <div style="color: var(--text-muted); font-size: 0.85rem; font-weight: 600; margin-top: 0.2rem;">Total Weekly Items</div>
           </div>
         </div>
-        <div class="bars-week" id="barsWeek">
-          <!-- Bars injected by JS or skeletons -->
-          <div class="bar skeleton" style="width:100%"></div>
-        </div>
-        <div style="display:flex;gap:10px;margin-top:8px;justify-content:space-between;">
-          <div class="bar-label">Mon</div><div class="bar-label">Tue</div><div class="bar-label">Wed</div><div class="bar-label">Thu</div><div class="bar-label">Fri</div><div class="bar-label">Sat</div><div class="bar-label">Sun</div>
+
+        <!-- Enhanced Bar Chart Grid Container -->
+        <div id="weeklyBarsContainer"
+          style="display: flex; gap: 14px; align-items: flex-end; height: 175px; margin-top: 1rem; padding: 0.5rem 0.25rem 0;">
+          <!-- Dynamically filled by dashboard.js -->
         </div>
       </section>
 
+      <!-- Trends Card -->
       <section class="card card-trends">
-        <div class="trends-controls">
-          <div style="display:flex;gap:8px;align-items:center;">
-            <div class="muted">Period</div>
-            <select id="trendPeriod">
-              <option value="7">7d</option>
-              <option value="14">14d</option>
-              <option value="30">30d</option>
+        <h3
+          style="font-size: 1.1rem; font-weight: 800; color: var(--text); margin-bottom: 1rem; letter-spacing: -0.3px;">
+          <svg style="display: inline-block; vertical-align: middle;" width="24" height="24" fill="none"
+            stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+          </svg> Trends Analysis
+        </h3>
+        <div
+          style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+          <div style="display: flex; gap: 0.8rem; align-items: center;">
+            <label style="font-size: 0.9rem; color: var(--text-muted); font-weight: 600;">Period</label>
+            <select id="trendPeriod" class="select-field" style="min-width: 100px;">
+              <option value="7">7 days</option>
+              <option value="14">14 days</option>
+              <option value="30">30 days</option>
             </select>
           </div>
-          <div style="display:flex;gap:8px;align-items:center;">
-            <div class="toggles">
-              <div class="toggle active" data-series="waste">Waste</div>
-              <div class="toggle active" data-series="organic">Organic</div>
-              <div class="toggle active" data-series="confidence">Confidence</div>
-            </div>
-            <button class="btn btn-ghost" id="exportTrends">Export</button>
+          <div style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
+            <button class="btn btn-small toggle active" data-series="waste"
+              style="background: rgba(0, 217, 255, 0.15); color: var(--primary); border: none; padding: 0.5rem 1rem;">
+              Waste
+            </button>
+            <button class="btn btn-small toggle active" data-series="organic"
+              style="background: rgba(0, 217, 142, 0.15); color: #00D98E; border: none; padding: 0.5rem 1rem;">
+              Organic
+            </button>
+            <button class="btn btn-small toggle active" data-series="confidence"
+              style="background: rgba(255, 183, 0, 0.15); color: #FFB700; border: none; padding: 0.5rem 1rem;">
+              Confidence
+            </button>
           </div>
         </div>
-        <canvas id="trendsChart" height="220"></canvas>
+        <div style="position: relative; height: 220px; width: 100%;">
+          <canvas id="trendsChart"></canvas>
+        </div>
       </section>
 
+      <!-- Top Classes Card -->
       <section class="card card-classes">
-        <h3>Top Classes</h3>
-        <div id="classesList">
-          <!-- rows injected by JS or skeleton -->
-          <div class="class-row"><div class="class-left"><div class="class-icon skeleton"></div><div class="class-name skeleton" style="width:120px;height:14px;"></div></div><div class="class-count skeleton" style="width:36px;height:14px;"></div></div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.5rem;">
+          <h3
+            style="font-size: 1.15rem; font-weight: 800; color: var(--text); display: flex; align-items: center; gap: 0.5rem; margin: 0;">
+            <svg width="24" height="24" fill="none" stroke="var(--primary)" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg> Top Detection Classes
+          </h3>
+          <span style="font-size: 0.8rem; font-weight: 700; color: var(--primary); background: rgba(0, 217, 255, 0.08); padding: 0.25rem 0.65rem; border-radius: 12px; border: 1px solid rgba(0, 217, 255, 0.15);">
+            Category Ranking
+          </span>
+        </div>
+
+        <div id="classesList" style="display: flex; flex-direction: column; gap: 0.6rem;">
+          <div style="text-align: center; color: var(--text-muted); padding: 2rem;">Loading categories…</div>
         </div>
       </section>
 
+      <!-- Model Detection Analytics Card -->
+      <section class="card card-composition">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.5rem;">
+          <h3
+            style="font-size: 1.15rem; font-weight: 800; color: var(--text); display: flex; align-items: center; gap: 0.5rem; margin: 0;">
+            <svg width="24" height="24" fill="none" stroke="var(--primary)" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+            </svg> Model Detection Analytics
+          </h3>
+          <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); background: rgba(0, 217, 255, 0.08); padding: 0.25rem 0.65rem; border-radius: 12px; border: 1px solid rgba(0, 217, 255, 0.15);">
+            Multi-Model Breakdown
+          </span>
+        </div>
+
+        <div style="display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap; justify-content: space-around; min-height: 210px;">
+          
+          <!-- Glowing Pie Chart Container with GSAP Aura -->
+          <div class="pie-chart-wrapper" style="position: relative; width: 185px; height: 185px; display: flex; align-items: center; justify-content: center;">
+            <!-- Ambient Glowing Ring Background -->
+            <div class="pie-glow-ring" style="position: absolute; inset: -8px; border-radius: 50%; background: radial-gradient(circle, rgba(0, 217, 255, 0.18) 0%, rgba(139, 92, 246, 0.12) 55%, transparent 75%); filter: blur(10px); pointer-events: none;"></div>
+            
+            <canvas id="compositionChart" style="position: relative; z-index: 2; width: 100%; height: 100%;"></canvas>
+            
+            <!-- Glass Center Badge with Theme-Aware Adaptability -->
+            <div class="pie-center-badge">
+              <span id="compositionCenterTotal" style="font-size: 1.75rem; font-weight: 900; color: var(--text); line-height: 1; letter-spacing: -0.5px;">0</span>
+              <span style="font-size: 0.68rem; font-weight: 800; color: var(--primary); text-transform: uppercase; margin-top: 3px; letter-spacing: 0.5px;">Detections</span>
+            </div>
+          </div>
+
+          <!-- Dynamic Model Analytics Breakdown -->
+          <div id="compositionBreakdownList" style="flex: 1; min-width: 210px; display: flex; flex-direction: column; gap: 0.6rem;">
+            <div style="text-align: center; color: var(--text-muted); padding: 1rem;">Loading model analytics…</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Detection Rate Card -->
       <section class="card card-rate">
-        <h3>Detection Rate</h3>
-        <div class="insight" id="rateInsight">Loading insights…</div>
-        <canvas id="rateChart" height="120"></canvas>
+        <h3
+          style="font-size: 1.1rem; font-weight: 800; color: var(--text); margin-bottom: 1rem; letter-spacing: -0.3px;">
+          <svg style="display: inline-block; vertical-align: middle;" width="24" height="24" fill="none"
+            stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg> Detection Rate
+        </h3>
+        <div id="rateInsight"
+          style="font-size: 0.9rem; color: var(--text-secondary); background: rgba(0, 217, 255, 0.08); padding: 1rem; border-radius: 0.75rem; border-left: 3px solid var(--primary); margin-bottom: 1rem;">
+          Loading insights…
+        </div>
+        <div style="position: relative; height: 120px; width: 100%;">
+          <canvas id="rateChart"></canvas>
+        </div>
       </section>
 
+      <!-- Mini Stats Card -->
       <section class="card card-ministats">
-        <div class="mini">
-          <div class="mini-title">Inference Latency</div>
-          <div class="mini-value" data-key="latency">— ms</div>
-          <div class="mini-legend">Latency · Preprocess</div>
+        <div style="flex: 1; padding: 1rem; background: rgba(0, 217, 255, 0.05); border-radius: 0.75rem;">
+          <div
+            style="font-size: 0.85rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; margin-bottom: 0.5rem;">
+            Inference Latency
+          </div>
+          <div style="font-size: 1.8rem; font-weight: 900; color: var(--primary);" id="latency">— ms</div>
+          <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem;">Latency · Preprocess</div>
         </div>
-        <div class="mini">
-          <div class="mini-title">Detections / Frame</div>
-          <div class="mini-value" data-key="dets_per_frame">—</div>
-          <div class="mini-legend">Avg · Max</div>
+        <div style="flex: 1; padding: 1rem; background: rgba(0, 217, 142, 0.05); border-radius: 0.75rem;">
+          <div
+            style="font-size: 0.85rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; margin-bottom: 0.5rem;">
+            Detections / Frame
+          </div>
+          <div style="font-size: 1.8rem; font-weight: 900; color: #00D98E;" id="dets_per_frame">—</div>
+          <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem;">Avg · Max</div>
         </div>
-        <div class="mini">
-          <div class="mini-title">Confidence Percentiles</div>
-          <div class="mini-value" id="confPercentiles">—</div>
-          <div class="mini-legend">P75 · P90 · P95 · P99</div>
+        <div style="flex: 1; padding: 1rem; background: rgba(255, 183, 0, 0.05); border-radius: 0.75rem;">
+          <div
+            style="font-size: 0.85rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; margin-bottom: 0.5rem;">
+            Confidence Percentiles
+          </div>
+          <div style="font-size: 1.8rem; font-weight: 900; color: #FFB700;" id="confPercentiles">—</div>
+          <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem;">P75 · P90 · P95</div>
         </div>
       </section>
+    </div>
+
+    <!-- Detection Evaluation & Measurements Reference Section -->
+    <div class="card" style="max-width: 1200px; margin: 2rem auto; padding: 1.5rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <h2 style="font-size: 1.5rem; font-weight: 900; color: var(--text); letter-spacing: -0.5px; margin-bottom: 0.25rem;">
+            <svg style="display: inline-block; vertical-align: middle; margin-right: 6px;" width="24" height="24" fill="none" stroke="var(--primary)" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6m-5 13V9m10 10v-8m5 8V4" />
+            </svg> Detection Evaluation & Measurements Standard Matrix
+          </h2>
+          <p style="color: var(--text-muted); font-size: 0.9rem;">
+            Standard metrics definitions and ideal values for AI object detection evaluation
+          </p>
+        </div>
+        <span class="badge" style="background: rgba(0, 217, 255, 0.15); color: var(--primary);">16 Standards</span>
+      </div>
+
+      <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr style="background: rgba(0, 217, 255, 0.08);">
+              <th style="padding: 1rem; text-align: left; font-weight: 800; text-transform: uppercase; font-size: 0.85rem; color: var(--primary); width: 220px;">Measurement</th>
+              <th style="padding: 1rem; text-align: left; font-weight: 800; text-transform: uppercase; font-size: 0.85rem; color: var(--primary);">Meaning</th>
+              <th style="padding: 1rem; text-align: left; font-weight: 800; text-transform: uppercase; font-size: 0.85rem; color: var(--primary); width: 250px;">Ideal Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for spec in detection_measurements_spec %}
+            <tr style="border-bottom: 1px solid rgba(148, 163, 184, 0.12);">
+              <td style="padding: 0.85rem 1rem; font-weight: 800; color: var(--text); font-size: 0.95rem;">
+                <div style="display: flex; align-items: center; gap: 0.6rem;">
+                  <span style="display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--primary); box-shadow: 0 0 6px var(--primary);"></span>
+                  <strong>{{ spec.measurement }}</strong>
+                </div>
+              </td>
+              <td style="padding: 0.85rem 1rem; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.5;">
+                {{ spec.meaning }}
+              </td>
+              <td style="padding: 0.85rem 1rem; font-size: 0.85rem;">
+                <span style="padding: 0.25rem 0.65rem; background: rgba(0, 217, 142, 0.1); border: 1px solid rgba(0, 217, 142, 0.3); border-radius: 6px; color: #00D98E; font-weight: 700; display: inline-block;">
+                  {{ spec.ideal }}
+                </span>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
   </main>
 
+  <!-- Footer -->
   <footer class="footer">
-    <p>WaterGuard AI · Monitoring · Built with Flask</p>
+    <p><img src="{{ url_for('static', filename='images/wastelogo.png') }}" alt="Dark Logo"
+        style="height: 24px; vertical-align: middle; margin-right: 10px;" /> © 2026 WastageDetection · AI-Powered
+      Environmental Monitoring</p>
   </footer>
 
+  <!-- Scripts -->
+  <script src="{{ url_for('static', filename='js/storage-engine.js') }}"></script>
   <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 </body>
+
 </html>
