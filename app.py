@@ -841,10 +841,18 @@ def allowed_file(filename: str) -> bool:
 
 
 def get_model_choices():
-    """Return list of model choices for the frontend selector, including Mixed ensemble."""
+    """Return list of model choices for the frontend selector, prioritizing low-RAM models."""
+    ordered_keys = []
+    for k in ["v2_best_pt", "best_pt", "taco_fasterrcnn_30epochs_pth"]:
+        if k in MODELS and k not in ordered_keys:
+            ordered_keys.append(k)
+    for k in MODELS:
+        if k not in ordered_keys:
+            ordered_keys.append(k)
+
     choices = [
-        {"id": mid, "name": info["name"], "short": info["short"]}
-        for mid, info in MODELS.items()
+        {"id": mid, "name": MODELS[mid]["name"], "short": MODELS[mid]["short"]}
+        for mid in ordered_keys
     ]
     if len(choices) >= 2:
         model_names = " + ".join([c["name"] for c in choices])
@@ -1178,24 +1186,44 @@ def compute_environmental_analytics(detections, img_w=1280, img_h=720):
 def run_model_prediction(model_id: str, source):
     t_start = time.time()
     img_w, img_h = 1280, 720
+    proc_source = source
+
     try:
         if isinstance(source, (str, Path)):
             with Image.open(str(source)) as simg:
+                simg = simg.convert('RGB')
                 img_w, img_h = simg.size
+                if max(img_w, img_h) > 640:
+                    scale = 640.0 / float(max(img_w, img_h))
+                    proc_source = simg.resize((int(img_w * scale), int(img_h * scale)), Image.BILINEAR)
+                else:
+                    proc_source = simg
         elif isinstance(source, Image.Image):
-            img_w, img_h = source.size
+            simg = source.convert('RGB')
+            img_w, img_h = simg.size
+            if max(img_w, img_h) > 640:
+                scale = 640.0 / float(max(img_w, img_h))
+                proc_source = simg.resize((int(img_w * scale), int(img_h * scale)), Image.BILINEAR)
+            else:
+                proc_source = simg
         elif isinstance(source, np.ndarray):
             img_h, img_w = source.shape[:2]
-    except Exception:
-        pass
+            proc_source = source
+    except Exception as exc:
+        print(f"⚠️ Pre-processing note: {exc}")
 
     if model_id == "mixed":
         combined_detections = []
         primary_results = None
-        for mid in list(MODELS.keys()):
+        # Omit ultra-heavy Faster R-CNN in ensemble mode to fit inside 512MB RAM
+        ensemble_keys = [k for k in ["v2_best_pt", "best_pt"] if k in MODELS]
+        if not ensemble_keys:
+            ensemble_keys = list(MODELS.keys())
+
+        for mid in ensemble_keys:
             try:
                 model_inst = get_model_instance(mid)
-                res = model_inst.predict(source=source, conf=0.25)
+                res = model_inst.predict(source=proc_source, conf=0.25)
                 if primary_results is None:
                     primary_results = res
                 dets = extract_detections(res, img_w=img_w, img_h=img_h)
@@ -1203,7 +1231,6 @@ def run_model_prediction(model_id: str, source):
             except Exception as exc:
                 print(f"⚠️ Error running sub-model '{mid}' in mixed mode: {exc}")
             finally:
-                # Unload model after running to prevent cumulative RAM bloat in ensemble mode
                 unload_current_model()
 
         t_elapsed = max(1, int((time.time() - t_start) * 1000))
@@ -1213,9 +1240,9 @@ def run_model_prediction(model_id: str, source):
             d["obj_id"] = f"OBJ-{idx + 1:03d}"
 
         avg_confidence = sum(d["confidence"] for d in final_detections) / len(final_detections) if final_detections else 0.0
-        plotted_img = draw_combined_detections(source, final_detections)
+        plotted_img = draw_combined_detections(proc_source, final_detections)
 
-        model_names = " + ".join([info["name"] for info in MODELS.values()])
+        model_names = " + ".join([MODELS[k]["name"] for k in ensemble_keys if k in MODELS])
         analytics = compute_environmental_analytics(final_detections, img_w=img_w, img_h=img_h)
         return {
             "model_id": "mixed",
@@ -1233,10 +1260,19 @@ def run_model_prediction(model_id: str, source):
         }
 
     if model_id not in MODELS:
-        raise ValueError(f"Unknown model {model_id}")
-    model_info = MODELS[model_id]
-    model_inst = get_model_instance(model_id)
-    results = model_inst.predict(source=source, conf=0.25)
+        model_id = get_best_model_id(None) or "v2_best_pt"
+
+    model_info = MODELS.get(model_id, {"name": "YOLOv8 v2"})
+    try:
+        model_inst = get_model_instance(model_id)
+        results = model_inst.predict(source=proc_source, conf=0.25)
+    except Exception as exc:
+        print(f"⚠️ Primary model '{model_id}' failed during prediction: {exc}. Falling back to YOLOv8...")
+        model_id = "v2_best_pt" if "v2_best_pt" in MODELS else next(iter(MODELS), "v2_best_pt")
+        model_info = MODELS.get(model_id, {"name": "YOLOv8 v2"})
+        model_inst = get_model_instance(model_id)
+        results = model_inst.predict(source=proc_source, conf=0.25)
+
     t_elapsed = max(1, int((time.time() - t_start) * 1000))
     detections = extract_detections(results, img_w=img_w, img_h=img_h)
     avg_confidence = sum(d["confidence"] for d in detections) / len(detections) if detections else 0.0
