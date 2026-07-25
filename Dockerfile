@@ -26,5 +26,8 @@ EXPOSE 7860
 
 ENV PORT=7860
 ENV PYTHONUNBUFFERED=1
+ENV OMP_NUM_THREADS=1
+ENV MKL_NUM_THREADS=1
 
-CMD ["gunicorn", "--bind", "0.0.0.0:7860", "--workers", "1", "--threads", "4", "--timeout", "120", "app:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:7860", "--workers", "1", "--threads", "2", "--timeout", "120", "app:app"]
+

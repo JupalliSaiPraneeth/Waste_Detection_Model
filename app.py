@@ -4,6 +4,7 @@ import uuid
 import json
 import zipfile
 import time
+import gc
 import threading
 from pathlib import Path
 from io import BytesIO
@@ -18,6 +19,11 @@ import torchvision
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 import torchvision.transforms.functional as F
 import cv2
+
+# Set PyTorch single-thread limits to minimize RAM footprint on low-memory servers (Render 512MB RAM)
+torch.set_num_threads(1)
+torch.set_num_interop_threads(1)
+
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -390,8 +396,64 @@ def extract_pt_from_zip(zip_path: Path) -> Path | None:
         return None
 
 
+# ---------------------------------------------------------------------------
+# Global Lazy Model Cache Manager (Keeps memory under 512MB limit)
+# ---------------------------------------------------------------------------
+CURRENT_LOADED_MODEL_ID = None
+CURRENT_LOADED_INSTANCE = None
+MODEL_LOCK = threading.Lock()
+
+
+def unload_current_model():
+    """Unload the active model from RAM and trigger garbage collection."""
+    global CURRENT_LOADED_MODEL_ID, CURRENT_LOADED_INSTANCE
+    if CURRENT_LOADED_INSTANCE is not None:
+        print(f"🧹 Unloading model '{CURRENT_LOADED_MODEL_ID}' from memory to save RAM...")
+        del CURRENT_LOADED_INSTANCE
+        CURRENT_LOADED_INSTANCE = None
+        CURRENT_LOADED_MODEL_ID = None
+        gc.collect()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+
+
+def get_model_instance(model_id: str):
+    """Lazy load requested model into RAM on demand.
+    Ensures only ONE model is loaded in memory at any given time.
+    """
+    global CURRENT_LOADED_MODEL_ID, CURRENT_LOADED_INSTANCE
+    with MODEL_LOCK:
+        if model_id not in MODELS:
+            raise ValueError(f"Unknown model_id: {model_id}")
+
+        if CURRENT_LOADED_MODEL_ID == model_id and CURRENT_LOADED_INSTANCE is not None:
+            return CURRENT_LOADED_INSTANCE
+
+        # Free memory of any existing loaded model before loading a new one
+        unload_current_model()
+
+        info = MODELS[model_id]
+        path = info["path"]
+        print(f"📦 Lazy loading model '{model_id}' ({info['name']}) into RAM from {path}...")
+
+        try:
+            if path.lower().endswith('.pth'):
+                model = FasterRCNNWrapper(str(path))
+            else:
+                model = YOLO(str(path))
+
+            CURRENT_LOADED_MODEL_ID = model_id
+            CURRENT_LOADED_INSTANCE = model
+            print(f"   ✅ {model_id} loaded into RAM successfully.")
+            return model
+        except Exception as exc:
+            print(f"   ❌ Failed to load model {model_id}: {exc}")
+            raise exc
+
+
 def discover_models():
-    """Scan the model directory and load any .pt and .pth files (and .pt inside zips).
+    """Scan the model directory and register metadata for .pt and .pth files.
+    Does NOT load model weights into RAM until requested (lazy loading).
     Returns a dict of model_id -> info.
     """
     discovered = {}
@@ -428,26 +490,18 @@ def discover_models():
         else:
             friendly_name = f"Model ({path.stem})"
 
-        print(f"📦 Loading model '{model_id}' ({friendly_name}) from {path}…")
-        try:
-            if path.suffix.lower() == '.pth':
-                model = FasterRCNNWrapper(str(path))
-            else:
-                model = YOLO(str(path))
-            discovered[model_id] = {
-                "instance": model,
-                "name": friendly_name,
-                "short": model_id,
-                "path": str(path),
-            }
-            print(f"   ✅ {model_id} loaded – classes: {model.names}")
-        except Exception as exc:
-            print(f"   ❌ Failed to load {path}: {exc}")
+        discovered[model_id] = {
+            "name": friendly_name,
+            "short": model_id,
+            "path": str(path),
+        }
+        print(f"🔍 Discovered model metadata '{model_id}' ({friendly_name}) at {path}")
 
     if len(discovered) == 0:
         print("❌ No models found!")
 
     return discovered
+
 
 
 # ---------------------------------------------------------------------------
@@ -1112,12 +1166,19 @@ def run_model_prediction(model_id: str, source):
     if model_id == "mixed":
         combined_detections = []
         primary_results = None
-        for mid, model_info in MODELS.items():
-            res = model_info["instance"].predict(source=source, conf=0.25)
-            if primary_results is None:
-                primary_results = res
-            dets = extract_detections(res, img_w=img_w, img_h=img_h)
-            combined_detections.extend(dets)
+        for mid in list(MODELS.keys()):
+            try:
+                model_inst = get_model_instance(mid)
+                res = model_inst.predict(source=source, conf=0.25)
+                if primary_results is None:
+                    primary_results = res
+                dets = extract_detections(res, img_w=img_w, img_h=img_h)
+                combined_detections.extend(dets)
+            except Exception as exc:
+                print(f"⚠️ Error running sub-model '{mid}' in mixed mode: {exc}")
+            finally:
+                # Unload model after running to prevent cumulative RAM bloat in ensemble mode
+                unload_current_model()
 
         t_elapsed = max(1, int((time.time() - t_start) * 1000))
         final_detections = deduplicate_detections(combined_detections, iou_thresh=0.65)
@@ -1148,7 +1209,8 @@ def run_model_prediction(model_id: str, source):
     if model_id not in MODELS:
         raise ValueError(f"Unknown model {model_id}")
     model_info = MODELS[model_id]
-    results = model_info["instance"].predict(source=source, conf=0.25)
+    model_inst = get_model_instance(model_id)
+    results = model_inst.predict(source=source, conf=0.25)
     t_elapsed = max(1, int((time.time() - t_start) * 1000))
     detections = extract_detections(results, img_w=img_w, img_h=img_h)
     avg_confidence = sum(d["confidence"] for d in detections) / len(detections) if detections else 0.0
