@@ -103,11 +103,20 @@ class FasterRCNNWrapper:
             self.names = class_names
 
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        self.model = torchvision.models.detection.fasterrcnn_resnet50_fpn(weights=None, weights_backbone=None)
+        self.model = torchvision.models.detection.fasterrcnn_resnet50_fpn(
+            weights=None,
+            weights_backbone=None,
+            min_size=320,
+            max_size=480,
+            rpn_pre_nms_top_n_test=200,
+            rpn_post_nms_top_n_test=100
+        )
         in_features = self.model.roi_heads.box_predictor.cls_score.in_features
         self.model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
         state_dict = torch.load(self.model_path, map_location=self.device)
         self.model.load_state_dict(state_dict)
+        del state_dict
+        gc.collect()
         self.model.to(self.device)
         self.model.eval()
 
@@ -122,7 +131,7 @@ class FasterRCNNWrapper:
             img = Image.open(source).convert('RGB')
 
         orig_w, orig_h = img.size
-        max_dim = 640
+        max_dim = 480
         if max(orig_w, orig_h) > max_dim:
             scale = max_dim / float(max(orig_w, orig_h))
             new_w, new_h = int(orig_w * scale), int(orig_h * scale)
@@ -134,8 +143,9 @@ class FasterRCNNWrapper:
             scale_x = scale_y = 1.0
 
         img_tensor = F.to_tensor(proc_img).to(self.device)
-        with torch.no_grad():
+        with torch.inference_mode():
             outputs = self.model([img_tensor])[0]
+
 
         boxes = outputs['boxes'].cpu().numpy()
         scores = outputs['scores'].cpu().numpy()
@@ -450,7 +460,16 @@ def get_model_instance(model_id: str):
             return model
         except Exception as exc:
             print(f"   ❌ Failed to load model {model_id}: {exc}")
+            fallback_id = "v2_best_pt" if ("v2_best_pt" in MODELS and model_id != "v2_best_pt") else None
+            if fallback_id:
+                print(f"   🔄 Falling back to lightweight model '{fallback_id}'...")
+                fallback_path = MODELS[fallback_id]["path"]
+                model = YOLO(str(fallback_path))
+                CURRENT_LOADED_MODEL_ID = fallback_id
+                CURRENT_LOADED_INSTANCE = model
+                return model
             raise exc
+
 
 
 def discover_models():
@@ -842,7 +861,12 @@ def get_best_model_id(default_id: str | None = None) -> str | None:
         return "mixed"
     if default_id and default_id in MODELS:
         return default_id
+    # Default to lightweight YOLOv8 detector for high speed & low RAM footprint (<512MB RAM)
+    for preferred in ["v2_best_pt", "v2", "best_pt"]:
+        if preferred in MODELS:
+            return preferred
     return next(iter(MODELS), None)
+
 
 
 def serialize_detection(box, names=None, inference_time_ms=14, img_w=1280, img_h=720, obj_idx=1) -> dict:
