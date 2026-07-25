@@ -1,5 +1,7 @@
 import os
+os.environ["YOLO_CONFIG_DIR"] = "/tmp/Ultralytics"
 import re
+
 import uuid
 import json
 import zipfile
