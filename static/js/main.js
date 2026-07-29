@@ -51,6 +51,7 @@ function loadTheme() {
   const saved = localStorage.getItem(THEME_KEY) || 'dark';
   const isDark = saved === 'dark';
   document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-paper-theme', isDark ? 'dark' : 'light');
   document.body.setAttribute('data-theme', isDark ? 'dark' : 'light');
   updateThemeButton(isDark);
 }
@@ -61,6 +62,7 @@ function toggleTheme() {
   const isDark = nextTheme === 'dark';
   
   document.documentElement.setAttribute('data-theme', nextTheme);
+  document.documentElement.setAttribute('data-paper-theme', nextTheme);
   document.body.setAttribute('data-theme', nextTheme);
   localStorage.setItem(THEME_KEY, nextTheme);
   updateThemeButton(isDark);
@@ -69,19 +71,24 @@ function toggleTheme() {
 }
 
 function updateThemeButton(isDark) {
-  const button = document.getElementById('themeToggle');
-  if (button) {
+  const buttons = document.querySelectorAll('#themeToggle, .theme-toggle-btn');
+  buttons.forEach(button => {
+    button.className = 'theme-toggle-btn';
     button.innerHTML = isDark 
-      ? '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>'
-      : '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>';
+      ? '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="vertical-align:middle; display:inline-block;"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg> <span style="font-weight:700;">Dark Mode</span>'
+      : '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="vertical-align:middle; display:inline-block;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg> <span style="font-weight:700;">Light Mode</span>';
     button.setAttribute('aria-pressed', isDark ? 'true' : 'false');
-  }
+    button.setAttribute('title', isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode');
+  });
 }
 
 function setupThemeToggle() {
-  if (themeToggle) {
-    themeToggle.addEventListener('click', toggleTheme);
-  }
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('#themeToggle, .theme-toggle-btn');
+    if (btn) {
+      toggleTheme();
+    }
+  });
 }
 
 // ============================================================

@@ -166,7 +166,10 @@ document.addEventListener('DOMContentLoaded', () => {
                           'Detection Summary Report (PDF)';
 
       // 1. Trigger File Download based on type
-      if (type === 'csv') {
+      if (type === 'research_paper') {
+        window.location.href = '/research-paper';
+        return;
+      } else if (type === 'csv') {
         if (window.StorageEngine && typeof window.StorageEngine.exportHistoryAsCSV === 'function') {
           window.StorageEngine.exportHistoryAsCSV(filteredHistory);
         }

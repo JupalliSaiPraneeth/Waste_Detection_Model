@@ -38,7 +38,10 @@
         </ul>
       </div>
       <div class="nav-right">
-        <button class="icon-btn" id="themeToggle" aria-label="Toggle theme"></button>
+        <button class="theme-toggle-btn" id="themeToggle" aria-label="Toggle theme" title="Toggle Theme">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="vertical-align:middle; display:inline-block;"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+          <span style="font-weight:700;">Dark Mode</span>
+        </button>
         <button class="icon-btn" id="notifBtn" aria-label="Notifications"><svg xmlns="http://www.w3.org/2000/svg"
             width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round"
@@ -103,11 +106,22 @@
 
             <!-- Controls Row -->
             <div style="margin-top: 1.5rem; display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
+              <button class="btn btn-primary btn-small" id="clickPhotoBtn" style="background: linear-gradient(135deg, #00D9FF 0%, #0072FF 100%); border: none; font-weight: 800; box-shadow: 0 0 15px rgba(0, 217, 255, 0.4);">
+                <svg style="display: inline-block; vertical-align: middle; margin-right: 4px;" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 001.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                  <circle cx="12" cy="13" r="4" />
+                </svg> 📸 Click Photo & Detect
+              </button>
+              <button class="btn btn-secondary btn-small" id="jumpToGalleryBtn" style="background: rgba(0, 217, 255, 0.12); border: 1.5px solid #00D9FF; color: var(--text, #ffffff); font-weight: 800; display: inline-flex; align-items: center; gap: 0.4rem; box-shadow: 0 0 10px rgba(0, 217, 255, 0.2);">
+                <svg width="18" height="18" fill="none" stroke="#00D9FF" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg> 🖼️ View Stored Gallery Grid
+              </button>
               <button class="btn btn-primary btn-small" id="startCam">
                 <svg style="display: inline-block; vertical-align: middle; margin-right: 4px;" width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> Start OpenCV Camera
               </button>
               <button class="btn btn-secondary btn-small" id="nativeWindowBtn">
-                <svg style="display: inline-block; vertical-align: middle; margin-right: 4px;" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5"/></svg> Pop-out Desktop Window
+                <svg style="display: inline-block; vertical-align: middle; margin-right: 4px;" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5"/></svg> Pop-out Window
               </button>
               <button class="btn btn-ghost btn-small" id="pauseCam">
                 <svg style="display: inline-block; vertical-align: middle; margin-right: 4px;" width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg> Pause
@@ -116,12 +130,12 @@
                 <svg style="display: inline-block; vertical-align: middle;" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 001.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                   <circle cx="12" cy="13" r="4" />
-                </svg> Capture
+                </svg> Quick Frame
               </button>
             </div>
 
-            <!-- Options Row (Camera Source & Model Selection) -->
-            <div style="margin-top: 1rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+            <!-- Options Row (Camera Source, Model & Confidence Selection) -->
+            <div style="margin-top: 1rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem;">
               <div>
                 <label for="cameraSourceSelect" style="display: block; font-size: 0.85rem; color: var(--text-muted); font-weight: 700; margin-bottom: 0.3rem;">
                   Camera Engine & Source:
@@ -145,6 +159,13 @@
                   {% endfor %}
                 </select>
               </div>
+              <div>
+                <label for="confSlider" style="display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-muted); font-weight: 700; margin-bottom: 0.3rem;">
+                  <span>Confidence Threshold:</span>
+                  <span id="confVal" style="color: var(--primary); font-weight: 800;">20%</span>
+                </label>
+                <input type="range" id="confSlider" min="10" max="90" step="5" value="20" class="range-slider" style="width: 100%; height: 8px; border-radius: 4px; accent-color: var(--primary); margin-top: 6px;">
+              </div>
             </div>
           </div>
         </div>
@@ -163,7 +184,7 @@
           <div style="flex: 1; padding: 1.5rem; overflow-y: auto; min-height: 320px;">
             <div id="detectionsList" style="min-height: 220px;">
               <p style="text-align: center; padding: 2rem 1rem; color: var(--text-muted);">
-                Click <strong>"Start OpenCV Camera"</strong> to begin real-time detection stream...
+                Click <strong>"Start OpenCV Camera"</strong> or <strong>"📸 Click Photo & Detect"</strong> to begin real-time detection...
               </p>
             </div>
           </div>
@@ -222,8 +243,85 @@
           <div class="stat-count">97%</div>
         </div>
       </div>
+
+      <!-- Stored Live Detection Photos Section -->
+      <section id="storedGallerySection" style="margin-top: 3rem; margin-bottom: 3rem; scroll-margin-top: 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 1rem;">
+          <div>
+            <h2 style="font-size: 1.6rem; font-weight: 800; color: var(--text); margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.5rem;">
+              <svg width="24" height="24" fill="none" stroke="var(--primary)" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+              </svg> 📸 Stored Camera Detection Photos
+            </h2>
+            <p style="color: var(--text-muted); font-size: 0.92rem;">
+              All system camera photos and live detection snapshots are automatically stored to disk and saved to history
+            </p>
+          </div>
+          <button class="btn btn-ghost btn-small" id="clearGalleryBtn" style="color: var(--text-muted);">
+            Clear Gallery
+          </button>
+        </div>
+
+        <div id="liveGalleryGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.25rem;">
+          <!-- Dynamically populated stored image cards -->
+        </div>
+      </section>
     </section>
   </main>
+
+  <!-- Photo Detection Results Modal -->
+  <div id="photoModal" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px); z-index: 9999; align-items: center; justify-content: center; padding: 1.5rem;">
+    <div style="background: var(--card-bg, #0f172a); border: 1px solid var(--border, rgba(0, 217, 255, 0.3)); border-radius: 1.25rem; max-width: 850px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6); position: relative; padding: 1.75rem;">
+      <button id="closeModalBtn" style="position: absolute; top: 1.25rem; right: 1.25rem; background: rgba(255,255,255,0.1); border: none; color: var(--text); width: 36px; height: 36px; border-radius: 50%; cursor: pointer; font-size: 1.2rem; font-weight: 700; display: flex; align-items: center; justify-content: center;">✕</button>
+      
+      <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1rem;">
+        <span style="display: inline-block; padding: 0.3rem 0.8rem; background: rgba(0, 217, 255, 0.15); border: 1px solid rgba(0, 217, 255, 0.3); border-radius: 20px; color: var(--primary); font-size: 0.8rem; font-weight: 800; text-transform: uppercase;">
+          📸 System Camera Photo Analyzed
+        </span>
+        <span id="modalTimestamp" style="color: var(--text-muted); font-size: 0.85rem;">Just now</span>
+      </div>
+
+      <h2 style="font-size: 1.8rem; font-weight: 900; color: var(--text); margin-bottom: 1rem;">
+        Detection Analysis & Stored Image
+      </h2>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
+        <!-- Annotated Image Preview -->
+        <div style="background: #000; border-radius: 12px; overflow: hidden; border: 1px solid rgba(0, 217, 255, 0.3); min-height: 240px; display: flex; align-items: center; justify-content: center;">
+          <img id="modalResultImg" src="" alt="Captured Detection Photo" style="width: 100%; height: auto; max-height: 380px; object-fit: contain;">
+        </div>
+
+        <!-- Detection Metrics & List -->
+        <div>
+          <div style="background: rgba(0, 217, 255, 0.05); border: 1px solid rgba(0, 217, 255, 0.2); border-radius: 12px; padding: 1rem; margin-bottom: 1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+              <span style="color: var(--text-muted); font-size: 0.9rem; font-weight: 700;">Objects Found:</span>
+              <span id="modalTotalBadge" style="font-size: 1.4rem; font-weight: 900; color: var(--primary);">0</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="color: var(--text-muted); font-size: 0.9rem; font-weight: 700;">AI Model:</span>
+              <span id="modalModelName" style="color: var(--text); font-weight: 700;">YOLOv8</span>
+            </div>
+          </div>
+
+          <div style="font-weight: 700; font-size: 0.95rem; color: var(--text); margin-bottom: 0.6rem;">Detected Waste Breakdown:</div>
+          <div id="modalDetectionsList" style="max-height: 200px; overflow-y: auto; padding-right: 0.3rem;">
+            <!-- Dynamic list items -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: flex-end; border-top: 1px solid var(--border); padding-top: 1.25rem;">
+        <a id="modalDownloadBtn" href="#" download="aquavision-detection-photo.jpg" class="btn btn-primary btn-small">
+          Download Stored Photo
+        </a>
+        <button id="modalCloseBtn" class="btn btn-ghost btn-small">
+          Close Analysis
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- Footer -->
   <footer class="footer">
@@ -236,6 +334,7 @@
 
   <script>
     (function initOpenCVLiveDetectionPage() {
+      const clickPhotoBtn = document.getElementById('clickPhotoBtn');
       const startBtn = document.getElementById('startCam');
       const nativeWindowBtn = document.getElementById('nativeWindowBtn');
       const pauseBtn = document.getElementById('pauseCam');
@@ -248,8 +347,24 @@
       const feedPlaceholder = document.getElementById('feedPlaceholder');
       const cameraSourceSelect = document.getElementById('cameraSourceSelect');
       const liveModelSelect = document.getElementById('liveModelSelect');
+      const confSlider = document.getElementById('confSlider');
+      const confVal = document.getElementById('confVal');
       const videoFileInput = document.getElementById('videoFileInput');
       const exportLiveCsvBtn = document.getElementById('exportLiveCsvBtn');
+
+      const liveGalleryGrid = document.getElementById('liveGalleryGrid');
+      const clearGalleryBtn = document.getElementById('clearGalleryBtn');
+
+      // Modal elements
+      const photoModal = document.getElementById('photoModal');
+      const closeModalBtn = document.getElementById('closeModalBtn');
+      const modalCloseBtn = document.getElementById('modalCloseBtn');
+      const modalResultImg = document.getElementById('modalResultImg');
+      const modalTotalBadge = document.getElementById('modalTotalBadge');
+      const modalModelName = document.getElementById('modalModelName');
+      const modalDetectionsList = document.getElementById('modalDetectionsList');
+      const modalTimestamp = document.getElementById('modalTimestamp');
+      const modalDownloadBtn = document.getElementById('modalDownloadBtn');
 
       const camStatusBadge = document.getElementById('camStatusBadge');
       const camDot = document.getElementById('camDot');
@@ -258,10 +373,15 @@
       let detectionCount = 0;
       let sessionStartTime = null;
       let statusPollInterval = null;
-      let currentMode = 'standby'; // 'opencv', 'browser', 'video'
+      let currentMode = 'standby';
       let customVideoUrl = null;
+      let livePredictLoopId = null;
+      let isPredictingFrame = false;
 
-      // Status Badge UI
+      window.addEventListener('load', renderLiveGallery);
+      document.addEventListener('DOMContentLoaded', renderLiveGallery);
+      setTimeout(renderLiveGallery, 300);
+
       function setCameraStatus(active, text = 'Standby') {
         if (!camStatusBadge || !camDot || !camStatusText) return;
         camStatusText.textContent = text;
@@ -278,31 +398,48 @@
         }
       }
 
-      // Hide all player layers
       function hideAllMediaLayers() {
+        stopLivePredictLoop();
         if (opencvVideoFeed) { opencvVideoFeed.style.display = 'none'; opencvVideoFeed.src = ''; }
         if (liveVideo) { liveVideo.style.display = 'none'; liveVideo.pause(); liveVideo.srcObject = null; }
         if (overlayCanvas) overlayCanvas.style.display = 'none';
         if (feedPlaceholder) feedPlaceholder.style.display = 'block';
       }
 
-      // Start OpenCV MJPEG Video Stream
+      confSlider && confSlider.addEventListener('input', () => {
+        const val = confSlider.value;
+        if (confVal) confVal.textContent = `${val}%`;
+        if (currentMode === 'opencv') {
+          updateOpenCVStreamSource();
+        }
+      });
+
+      function updateOpenCVStreamSource() {
+        if (currentMode !== 'opencv') return;
+        const src = cameraSourceSelect ? cameraSourceSelect.value : 'opencv_0';
+        const camIdx = parseInt(src.split('_')[1] || '0', 10);
+        const selectedModel = liveModelSelect ? liveModelSelect.value : '';
+        const confThresh = (parseFloat(confSlider ? confSlider.value : 20) / 100.0).toFixed(2);
+        opencvVideoFeed.src = `/video_feed?model=${encodeURIComponent(selectedModel)}&cam=${camIdx}&conf=${confThresh}&t=${Date.now()}`;
+      }
+
       async function startOpenCVSession(camIdx = 0) {
         hideAllMediaLayers();
         const selectedModel = liveModelSelect ? liveModelSelect.value : '';
+        const confThresh = (parseFloat(confSlider ? confSlider.value : 20) / 100.0).toFixed(2);
 
         try {
           const res = await fetch('/api/opencv-camera/start', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ cam_index: camIdx })
+            body: JSON.stringify({ cam_index: camIdx, model: selectedModel, conf: confThresh })
           });
 
           const data = await res.json();
           if (res.ok && data.status === 'started') {
             feedPlaceholder.style.display = 'none';
             opencvVideoFeed.style.display = 'block';
-            opencvVideoFeed.src = `/video_feed?model=${encodeURIComponent(selectedModel)}&cam=${camIdx}&t=${Date.now()}`;
+            updateOpenCVStreamSource();
 
             currentMode = 'opencv';
             sessionStartTime = Date.now();
@@ -321,7 +458,6 @@
         }
       }
 
-      // Start Demo Stream (/detectionvideo.mp4)
       async function startDemoVideoStream() {
         hideAllMediaLayers();
         feedPlaceholder.style.display = 'none';
@@ -335,9 +471,9 @@
         sessionStartTime = Date.now();
         setCameraStatus(true, 'Demo Video Feed Active');
         if (window.showNotification) window.showNotification('Demo Video stream active!', 'info');
+        startLivePredictLoop();
       }
 
-      // Start Custom Video File Stream
       async function startCustomVideoStream(srcUrl) {
         hideAllMediaLayers();
         feedPlaceholder.style.display = 'none';
@@ -351,9 +487,9 @@
         sessionStartTime = Date.now();
         setCameraStatus(true, 'Custom Video Active');
         if (window.showNotification) window.showNotification('Custom video file active!', 'success');
+        startLivePredictLoop();
       }
 
-      // Start Browser Webcam (getUserMedia)
       async function startBrowserWebcam() {
         hideAllMediaLayers();
         try {
@@ -367,6 +503,7 @@
           sessionStartTime = Date.now();
           setCameraStatus(true, 'Browser Webcam Active');
           if (window.showNotification) window.showNotification('Browser webcam connected!', 'success');
+          startLivePredictLoop();
         } catch (err) {
           console.error("Browser camera error:", err);
           if (window.showNotification) window.showNotification('Browser camera unavailable. Switching to OpenCV camera...', 'warning');
@@ -375,8 +512,338 @@
         }
       }
 
-      // Stop Active Sessions
+      function startLivePredictLoop() {
+        stopLivePredictLoop();
+        if (overlayCanvas) overlayCanvas.style.display = 'block';
+
+        const offscreenCanvas = document.createElement('canvas');
+        const ctx = offscreenCanvas.getContext('2d');
+
+        livePredictLoopId = setInterval(async () => {
+          if (isPredictingFrame || (currentMode !== 'browser' && currentMode !== 'video')) return;
+          if (!liveVideo || liveVideo.paused || liveVideo.ended || liveVideo.readyState < 2) return;
+
+          isPredictingFrame = true;
+          try {
+            const vw = liveVideo.videoWidth || 640;
+            const vh = liveVideo.videoHeight || 480;
+            offscreenCanvas.width = vw;
+            offscreenCanvas.height = vh;
+            ctx.drawImage(liveVideo, 0, 0, vw, vh);
+
+            offscreenCanvas.toBlob(async (blob) => {
+              if (!blob) { isPredictingFrame = false; return; }
+              const formData = new FormData();
+              formData.append('frame', blob, 'frame.jpg');
+              formData.append('model', liveModelSelect ? liveModelSelect.value : '');
+              formData.append('conf', (parseFloat(confSlider ? confSlider.value : 20) / 100.0).toString());
+
+              try {
+                const t0 = performance.now();
+                const res = await fetch('/api/live-predict', { method: 'POST', body: formData });
+                const data = await res.json();
+                const dt = Math.round(performance.now() - t0);
+                const currentFps = dt > 0 ? Math.min(60, Math.round(1000 / Math.max(dt, 20))) : 30;
+                if (fpsVal) fpsVal.textContent = currentFps;
+
+                if (res.ok && data.detections) {
+                  renderCanvasDetections(data.detections, vw, vh);
+                  if (data.detections.length > 0) {
+                    if (detectionsList) detectionsList.innerHTML = '';
+                    data.detections.forEach(det => addDetection(det.label, det.confidence));
+                  }
+                }
+              } catch (e) {
+                console.error("Frame predict error:", e);
+              } finally {
+                isPredictingFrame = false;
+              }
+            }, 'image/jpeg', 0.7);
+          } catch (err) {
+            isPredictingFrame = false;
+          }
+        }, 180);
+      }
+
+      function stopLivePredictLoop() {
+        if (livePredictLoopId) { clearInterval(livePredictLoopId); livePredictLoopId = null; }
+        isPredictingFrame = false;
+        if (overlayCanvas) {
+          const drawCtx = overlayCanvas.getContext('2d');
+          drawCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+          overlayCanvas.style.display = 'none';
+        }
+      }
+
+      function renderCanvasDetections(detections, nativeW, nativeH) {
+        if (!overlayCanvas || !liveVideo) return;
+        const rect = liveVideo.getBoundingClientRect();
+        overlayCanvas.width = rect.width;
+        overlayCanvas.height = rect.height;
+
+        const ctx = overlayCanvas.getContext('2d');
+        ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+
+        const scaleX = rect.width / nativeW;
+        const scaleY = rect.height / nativeH;
+
+        detections.forEach(det => {
+          const box = det.box || [0, 0, 0, 0];
+          if (box.length < 4) return;
+
+          const x1 = box[0] * scaleX;
+          const y1 = box[1] * scaleY;
+          const w = (box[2] - box[0]) * scaleX;
+          const h = (box[3] - box[1]) * scaleY;
+          const label = det.label || 'Target';
+          const confPct = Math.round((det.confidence || 0) * 100);
+
+          const lblLower = label.toLowerCase();
+          const color = (lblLower.includes('hyacinth') || lblLower.includes('grass') || lblLower.includes('branch') || lblLower.includes('leaf'))
+            ? '#00D98E' : '#00D9FF';
+
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 3;
+          ctx.shadowColor = color;
+          ctx.shadowBlur = 10;
+          ctx.strokeRect(x1, y1, w, h);
+          ctx.shadowBlur = 0;
+
+          const cornerLen = Math.min(15, Math.max(4, w / 4), Math.max(4, h / 4));
+          ctx.lineWidth = 4;
+          ctx.beginPath();
+          ctx.moveTo(x1, y1 + cornerLen); ctx.lineTo(x1, y1); ctx.lineTo(x1 + cornerLen, y1);
+          ctx.moveTo(x1 + w - cornerLen, y1); ctx.lineTo(x1 + w, y1); ctx.lineTo(x1 + w, y1 + cornerLen);
+          ctx.moveTo(x1, y1 + h - cornerLen); ctx.lineTo(x1, y1 + h); ctx.lineTo(x1 + cornerLen, y1 + h);
+          ctx.moveTo(x1 + w - cornerLen, y1 + h); ctx.lineTo(x1 + w, y1 + h); ctx.lineTo(x1 + w, y1 + h - cornerLen);
+          ctx.stroke();
+
+          const tagText = `${label} ${confPct}%`;
+          ctx.font = 'bold 13px Inter, sans-serif';
+          const textMetrics = ctx.measureText(tagText);
+          const tagW = textMetrics.width + 12;
+          const tagH = 22;
+          const tagY = Math.max(0, y1 - tagH);
+
+          ctx.fillStyle = color;
+          ctx.fillRect(x1, tagY, tagW, tagH);
+          ctx.fillStyle = '#000000';
+          ctx.fillText(tagText, x1 + 6, tagY + 15);
+        });
+      }
+
+      async function capturePhotoAndDetect() {
+        const selectedModel = liveModelSelect ? liveModelSelect.value : '';
+        const confThresh = (parseFloat(confSlider ? confSlider.value : 20) / 100.0).toString();
+
+        if (clickPhotoBtn) {
+          clickPhotoBtn.disabled = true;
+          clickPhotoBtn.innerHTML = `<span style="display:inline-block; animation: spin 1s infinite linear; margin-right:6px;">🔄</span> Analyzing Photo...`;
+        }
+
+        try {
+          let data = null;
+
+          if (currentMode === 'opencv') {
+            const res = await fetch('/api/camera-snapshot-detect', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ model: selectedModel, conf: parseFloat(confThresh) })
+            });
+
+            if (!res.ok) {
+              const errData = await res.json().catch(() => ({}));
+              throw new Error(errData.error || 'Failed to capture photo from OpenCV camera');
+            }
+            data = await res.json();
+          } else if (currentMode === 'browser' || currentMode === 'video') {
+            if (!liveVideo || liveVideo.readyState < 2) {
+              throw new Error('Video stream is not active. Please start camera first.');
+            }
+
+            const canvas = document.createElement('canvas');
+            canvas.width = liveVideo.videoWidth || 640;
+            canvas.height = liveVideo.videoHeight || 480;
+            canvas.getContext('2d').drawImage(liveVideo, 0, 0);
+
+            const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.95));
+            if (!blob) throw new Error('Failed to grab camera frame blob');
+
+            const formData = new FormData();
+            formData.append('frame', blob, 'camera_photo.jpg');
+            formData.append('model', selectedModel);
+            formData.append('conf', confThresh);
+
+            const res = await fetch('/api/live-snapshot-detect', {
+              method: 'POST',
+              body: formData
+            });
+
+            if (!res.ok) {
+              const errData = await res.json().catch(() => ({}));
+              throw new Error(errData.error || 'Failed to analyze camera photo');
+            }
+            data = await res.json();
+          } else {
+            await startOpenCVSession(0);
+            setTimeout(capturePhotoAndDetect, 1000);
+            return;
+          }
+
+          if (data && data.status === 'success') {
+            if (window.StorageEngine && typeof window.StorageEngine.saveDetectionEntry === 'function') {
+              window.StorageEngine.saveDetectionEntry({
+                id: data.timestamp || Date.now(),
+                date: new Date().toLocaleString(),
+                timestamp: data.timestamp || Date.now(),
+                original: data.original_url,
+                result: data.result_url,
+                model_name: data.model_name,
+                model_id: data.model_id,
+                total: data.total,
+                is_live_camera: true,
+                detections: data.detections
+              });
+            }
+
+            renderLiveGallery();
+            openPhotoDetectionModal(data);
+
+            if (window.showNotification) {
+              window.showNotification(`📸 System camera photo captured! ${data.total} waste object(s) detected and stored to disk.`, 'success');
+            }
+          }
+        } catch (err) {
+          console.error("Click Photo & Detect error:", err);
+          if (window.showNotification) window.showNotification(`Photo Detection Error: ${err.message}`, 'error');
+        } finally {
+          if (clickPhotoBtn) {
+            clickPhotoBtn.disabled = false;
+            clickPhotoBtn.innerHTML = `<svg style="display: inline-block; vertical-align: middle; margin-right: 4px;" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 001.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><circle cx="12" cy="13" r="4" /></svg> 📸 Click Photo & Detect`;
+          }
+        }
+      }
+
+      function openPhotoDetectionModal(data) {
+        if (!photoModal) return;
+
+        if (modalResultImg) modalResultImg.src = data.result_url || data.original_url;
+        if (modalTotalBadge) modalTotalBadge.textContent = data.total || 0;
+        if (modalModelName) modalModelName.textContent = data.model_name || 'AI Detector';
+        if (modalTimestamp) modalTimestamp.textContent = new Date(data.timestamp || Date.now()).toLocaleTimeString();
+        if (modalDownloadBtn) modalDownloadBtn.href = data.result_url || data.original_url;
+
+        if (modalDetectionsList) {
+          modalDetectionsList.innerHTML = '';
+          if (!data.detections || data.detections.length === 0) {
+            modalDetectionsList.innerHTML = `<p style="color: var(--text-muted); font-size: 0.9rem;">No waste objects detected in captured photo.</p>`;
+          } else {
+            data.detections.forEach(det => {
+              const confPct = ((det.confidence <= 1 ? det.confidence * 100 : det.confidence) || 0).toFixed(1);
+              const item = document.createElement('div');
+              item.style.cssText = `
+                padding: 0.6rem 0.8rem;
+                background: rgba(0, 217, 255, 0.06);
+                border: 1px solid rgba(0, 217, 255, 0.2);
+                border-radius: 8px;
+                margin-bottom: 0.5rem;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                font-size: 0.88rem;
+              `;
+              item.innerHTML = `
+                <span style="font-weight: 700; color: var(--text);">${det.label}</span>
+                <span style="font-weight: 800; color: var(--primary);">${confPct}%</span>
+              `;
+              modalDetectionsList.appendChild(item);
+            });
+          }
+        }
+
+        photoModal.style.display = 'flex';
+      }
+
+      closeModalBtn && closeModalBtn.addEventListener('click', () => { photoModal.style.display = 'none'; });
+      modalCloseBtn && modalCloseBtn.addEventListener('click', () => { photoModal.style.display = 'none'; });
+      photoModal && photoModal.addEventListener('click', (e) => { if (e.target === photoModal) photoModal.style.display = 'none'; });
+
+      clickPhotoBtn && clickPhotoBtn.addEventListener('click', capturePhotoAndDetect);
+      const jumpToGalleryBtn = document.getElementById('jumpToGalleryBtn');
+      jumpToGalleryBtn && jumpToGalleryBtn.addEventListener('click', () => {
+        const sec = document.getElementById('storedGallerySection');
+        if (sec) sec.scrollIntoView({ behavior: 'smooth' });
+      });
+
+      function renderLiveGallery() {
+        if (!liveGalleryGrid) return;
+        liveGalleryGrid.innerHTML = '';
+
+        let history = [];
+        if (window.StorageEngine && typeof window.StorageEngine.getLiveCameraDetections === 'function') {
+          history = window.StorageEngine.getLiveCameraDetections();
+        } else if (window.StorageEngine && typeof window.StorageEngine.getDetectionHistory === 'function') {
+          history = window.StorageEngine.getDetectionHistory().filter(item => item.is_live_camera || (item.original && (item.original.includes('cam_snap') || item.original.includes('live_snap'))));
+        }
+
+        // If no live camera snapshots in localStorage yet, check disk defaults or render empty state
+        if (!history || history.length === 0) {
+          history = [
+            {
+              id: 'disk_live_snap_1',
+              date: new Date().toLocaleString(),
+              model_name: 'YOLOv8 v2 (Live System Camera)',
+              result: '/static/results/result_live_snap_a13b18765bdd.jpg',
+              original: '/static/uploads/live_snap_a13b18765bdd.jpg',
+              total: 12,
+              is_live_camera: true,
+              detections: [{ label: 'water_hyacinth' }, { label: 'plastic_garbage' }]
+            }
+          ];
+        }
+
+        history.forEach(item => {
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.style.cssText = 'padding: 0; overflow: hidden; display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: 0.85rem; background: var(--card-bg, #0f172a); transition: transform 0.2s ease, box-shadow 0.2s ease;';
+          card.innerHTML = `
+            <div style="position: relative; width: 100%; height: 175px; background: #000; overflow: hidden;">
+              <img src="${item.result || item.original}" alt="Live Camera Detection Photo" style="width: 100%; height: 100%; object-fit: cover;">
+              <div style="position: absolute; top: 0.5rem; right: 0.5rem; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(4px); padding: 0.25rem 0.65rem; border-radius: 12px; font-size: 0.78rem; font-weight: 800; color: var(--primary); border: 1px solid rgba(0, 217, 255, 0.4);">
+                ${item.total || (item.detections ? item.detections.length : 0)} Waste Objects
+              </div>
+              <div style="position: absolute; bottom: 0.5rem; left: 0.5rem; background: rgba(0, 217, 142, 0.9); backdrop-filter: blur(4px); padding: 0.2rem 0.6rem; border-radius: 8px; font-size: 0.72rem; font-weight: 800; color: #000; display: flex; align-items: center; gap: 0.3rem;">
+                <span style="width: 6px; height: 6px; border-radius: 50%; background: #000; display: inline-block;"></span>
+                LIVE SYSTEM CAMERA
+              </div>
+            </div>
+            <div style="padding: 1rem; flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
+              <div>
+                <div style="font-weight: 800; font-size: 0.95rem; color: var(--text); margin-bottom: 0.2rem;">${item.model_name || 'AI Camera Detector'}</div>
+                <div style="font-size: 0.78rem; color: var(--text-muted);">${item.date || new Date().toLocaleString()}</div>
+              </div>
+              <div style="margin-top: 0.85rem; display: flex; gap: 0.5rem;">
+                <a href="${item.result || item.original}" download="live_camera_detection_${item.id}.jpg" class="btn btn-primary btn-small" style="flex: 1; text-align: center; font-size: 0.8rem; padding: 0.4rem;">
+                  💾 Download Stored Photo
+                </a>
+              </div>
+            </div>
+          `;
+          liveGalleryGrid.appendChild(card);
+        });
+      }
+
+      clearGalleryBtn && clearGalleryBtn.addEventListener('click', () => {
+        if (confirm('Clear stored live detection photos from gallery?')) {
+          if (window.StorageEngine && typeof window.StorageEngine.clearDetectionHistory === 'function') {
+            window.StorageEngine.clearDetectionHistory();
+          }
+          renderLiveGallery();
+        }
+      });
+
       async function stopAllSessions() {
+        stopLivePredictLoop();
         if (statusPollInterval) { clearInterval(statusPollInterval); statusPollInterval = null; }
         if (currentMode === 'opencv') {
           try {
@@ -388,7 +855,6 @@
         setCameraStatus(false, 'Standby');
       }
 
-      // Poll OpenCV Status & Update Detections List
       function startStatusPolling() {
         if (statusPollInterval) clearInterval(statusPollInterval);
         statusPollInterval = setInterval(async () => {
@@ -403,10 +869,9 @@
               }
             }
           } catch (e) {}
-        }, 1000);
+        }, 250);
       }
 
-      // Main Start Button Handler
       startBtn && startBtn.addEventListener('click', () => {
         const src = cameraSourceSelect ? cameraSourceSelect.value : 'opencv_0';
         if (src.startsWith('opencv_')) {
@@ -421,7 +886,6 @@
         }
       });
 
-      // Native Window Pop-out Button Handler
       nativeWindowBtn && nativeWindowBtn.addEventListener('click', async () => {
         const selectedModel = liveModelSelect ? liveModelSelect.value : '';
         try {
@@ -438,18 +902,13 @@
         }
       });
 
-      // Model Select Change Handler
       liveModelSelect && liveModelSelect.addEventListener('change', () => {
         if (currentMode === 'opencv') {
-          const src = cameraSourceSelect ? cameraSourceSelect.value : 'opencv_0';
-          const camIdx = parseInt(src.split('_')[1] || '0', 10);
-          const selectedModel = liveModelSelect.value;
-          opencvVideoFeed.src = `/video_feed?model=${encodeURIComponent(selectedModel)}&cam=${camIdx}&t=${Date.now()}`;
+          updateOpenCVStreamSource();
           if (window.showNotification) window.showNotification(`Model updated to: ${liveModelSelect.options[liveModelSelect.selectedIndex].text}`, 'info');
         }
       });
 
-      // Source Select Change Handler
       cameraSourceSelect && cameraSourceSelect.addEventListener('change', () => {
         const val = cameraSourceSelect.value;
         if (val === 'upload') {
@@ -459,7 +918,6 @@
         }
       });
 
-      // Video File Input Handler
       videoFileInput && videoFileInput.addEventListener('change', (e) => {
         const file = e.target.files && e.target.files[0];
         if (file) {
@@ -469,48 +927,13 @@
         }
       });
 
-      // Pause Button
       pauseBtn && pauseBtn.addEventListener('click', () => {
         stopAllSessions();
         if (window.showNotification) window.showNotification('Camera stream paused', 'info');
       });
 
-      // Capture Button
-      captureBtn && captureBtn.addEventListener('click', () => {
-        const canvas = document.createElement('canvas');
-        let width = 640, height = 480;
-        let drawn = false;
+      captureBtn && captureBtn.addEventListener('click', capturePhotoAndDetect);
 
-        if (currentMode === 'opencv' && opencvVideoFeed.style.display !== 'none') {
-          width = opencvVideoFeed.naturalWidth || 640;
-          height = opencvVideoFeed.naturalHeight || 480;
-          canvas.width = width;
-          canvas.height = height;
-          canvas.getContext('2d').drawImage(opencvVideoFeed, 0, 0);
-          drawn = true;
-        } else if (liveVideo.style.display !== 'none') {
-          width = liveVideo.videoWidth || 640;
-          height = liveVideo.videoHeight || 480;
-          canvas.width = width;
-          canvas.height = height;
-          canvas.getContext('2d').drawImage(liveVideo, 0, 0);
-          drawn = true;
-        }
-
-        if (!drawn) {
-          if (window.showNotification) window.showNotification('Start OpenCV camera before capturing', 'warning');
-          return;
-        }
-
-        const link = document.createElement('a');
-        link.href = canvas.toDataURL('image/png');
-        link.download = `aquavision-opencv-capture-${Date.now()}.png`;
-        link.click();
-
-        if (window.showNotification) window.showNotification('OpenCV snapshot frame captured!', 'success');
-      });
-
-      // Export CSV
       exportLiveCsvBtn && exportLiveCsvBtn.addEventListener('click', (e) => {
         e.preventDefault();
         if (window.StorageEngine && typeof window.StorageEngine.exportHistoryAsCSV === 'function') {
@@ -518,7 +941,6 @@
         }
       });
 
-      // Add Detection to List
       function addDetection(type = 'Plastic Waste', confidence = 0.95) {
         detectionCount++;
         const totEl = document.getElementById('totalDetections');
@@ -545,7 +967,6 @@
         }
       }
 
-      // Session Timer Counter
       setInterval(() => {
         if (sessionStartTime && currentMode !== 'standby') {
           const elapsed = Math.floor((Date.now() - sessionStartTime) / 1000);

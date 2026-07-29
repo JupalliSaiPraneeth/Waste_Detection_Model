@@ -537,6 +537,40 @@ document.addEventListener('DOMContentLoaded', () => {
     themeObserver.observe(document.documentElement, { attributes: true });
     themeObserver.observe(document.body, { attributes: true });
 
+    // Listen to model tab selection changes to update histograms per selected model
+    window.addEventListener('selectedModelAnalyticsChanged', (e) => {
+        const modelId = e.detail ? e.detail.modelId : 'v2';
+        if (window._perModelAnalytics && window._perModelAnalytics[modelId]) {
+            const m = window._perModelAnalytics[modelId];
+            
+            // Update Pie / Donut Chart for selected model
+            if (pieChartInstance && m.class_freq_histogram) {
+                pieChartInstance.data.labels = m.class_freq_histogram.labels;
+                pieChartInstance.data.datasets[0].data = m.class_freq_histogram.data;
+                pieChartInstance.update();
+                const centerNumEl = document.getElementById('pieCenterNumber');
+                if (centerNumEl) {
+                    const total = m.class_freq_histogram.data.reduce((a, b) => a + b, 0);
+                    centerNumEl.textContent = total;
+                }
+            }
+            
+            // Update Confidence Histogram for selected model
+            if (confHistInstance && m.confidence_histogram) {
+                confHistInstance.data.labels = m.confidence_histogram.labels;
+                confHistInstance.data.datasets[0].data = m.confidence_histogram.data;
+                confHistInstance.update();
+            }
+            
+            // Update Object Size / Density Histogram for selected model
+            if (countHistInstance && m.object_size_histogram) {
+                countHistInstance.data.labels = m.object_size_histogram.labels;
+                countHistInstance.data.datasets[0].data = m.object_size_histogram.data;
+                countHistInstance.update();
+            }
+        }
+    });
+
     // Also attach to theme toggle button directly if present
     const themeBtn = document.getElementById('themeToggle');
     if (themeBtn) {

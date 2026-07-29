@@ -178,7 +178,7 @@
     if (!entry) return;
     try {
       const history = getDetectionHistory();
-      
+
       const newRecord = {
         id: entry.id || Date.now(),
         date: entry.date || new Date().toLocaleString(),
@@ -187,6 +187,7 @@
         result: entry.result || '',
         model_name: entry.model_name || 'YOLOv8',
         model_id: entry.model_id || 'v1',
+        is_live_camera: entry.is_live_camera !== undefined ? entry.is_live_camera : (Boolean(entry.original && (entry.original.includes('cam_snap') || entry.original.includes('live_snap')))),
         total: typeof entry.total === 'number' ? entry.total : (entry.detections ? entry.detections.length : 0),
         detections: Array.isArray(entry.detections) ? entry.detections.map(d => ({
           label: d.label || 'unknown',
@@ -206,7 +207,7 @@
       }
 
       history.unshift(newRecord);
-      
+
       // Cap max history length at 100 items
       const trimmed = history.slice(0, 100);
       localStorage.setItem(LS_KEY, JSON.stringify(trimmed));
@@ -387,7 +388,7 @@
           const conf = (det.confidence <= 1 ? det.confidence * 100 : det.confidence) || 0;
           const confPct = conf.toFixed(1) + '%';
           const objId = det.obj_id || det.id || `OBJ-${String(idx + 1).padStart(3, '0')}`;
-          
+
           let boxStr = det.box_str;
           if (!boxStr && det.box && det.box.length >= 4) {
             const [x1, y1, x2, y2] = det.box.map(v => Math.round(v));
@@ -463,7 +464,7 @@
       detections: (entry.detections || []).map((det, idx) => {
         const conf = (det.confidence <= 1 ? det.confidence * 100 : det.confidence) || 0;
         const objId = det.obj_id || det.id || `OBJ-${String(idx + 1).padStart(3, '0')}`;
-        
+
         let boxStr = det.box_str;
         if (!boxStr && det.box && det.box.length >= 4) {
           const [x1, y1, x2, y2] = det.box.map(v => Math.round(v));
@@ -504,11 +505,22 @@
     document.body.removeChild(link);
   }
 
+  function getLiveCameraDetections() {
+    const history = getDetectionHistory();
+    return history.filter(item => {
+      if (item.is_live_camera === true) return true;
+      if (item.original && (item.original.includes('cam_snap') || item.original.includes('live_snap'))) return true;
+      if (item.result && (item.result.includes('cam_snap') || item.result.includes('live_snap'))) return true;
+      return false;
+    });
+  }
+
   // Export API object to window namespace
   window.StorageEngine = {
     LS_KEY,
     THEME_KEY,
     getDetectionHistory,
+    getLiveCameraDetections,
     saveDetectionEntry,
     clearDetectionHistory,
     isOrganicLabel,
