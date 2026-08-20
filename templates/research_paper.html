@@ -162,13 +162,19 @@
     }
 
     .paper-main-canvas.two-column-mode .paper-body-content {
-      column-count: 2;
-      column-gap: 2.5rem;
-      column-rule: 1px solid var(--border-color);
+      column-count: 2 !important;
+      column-gap: 2.5rem !important;
+      column-rule: 1px solid var(--border-color) !important;
+      text-align: justify;
     }
 
     .paper-main-canvas.two-column-mode .full-width-element {
-      column-span: all;
+      column-span: all !important;
+    }
+
+    .paper-main-canvas.two-column-mode .paper-section {
+      column-span: none;
+      margin-bottom: 1.5rem;
     }
 
     .journal-badge-bar {
@@ -292,21 +298,28 @@
       background: var(--eq-bg);
       border: 1px solid var(--border-color);
       border-radius: 12px;
-      padding: 1.25rem 1.5rem;
-      margin: 1.5rem 0;
+      padding: 1.1rem 1.25rem;
+      margin: 1.25rem 0;
       position: relative;
       box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      max-width: 100%;
     }
 
     .equation-number {
       position: absolute;
-      right: 1.5rem;
+      right: 1.25rem;
       top: 50%;
       transform: translateY(-50%);
       font-family: 'JetBrains Mono', monospace;
-      font-size: 0.85rem;
-      font-weight: 700;
-      color: var(--text-muted);
+      font-size: 0.8rem;
+      font-weight: 800;
+      color: var(--paper-accent);
+      background: rgba(0, 217, 255, 0.08);
+      padding: 0.2rem 0.5rem;
+      border-radius: 6px;
+      border: 1px solid rgba(0, 217, 255, 0.2);
     }
 
     .pseudocode-box {
@@ -392,6 +405,7 @@
       overflow-x: auto;
       scrollbar-width: none;
     }
+
     .controls-toolbar::-webkit-scrollbar {
       display: none;
     }
@@ -439,7 +453,8 @@
       transition: all 0.2s ease;
     }
 
-    .paper-model-select:hover, .paper-model-select:focus {
+    .paper-model-select:hover,
+    .paper-model-select:focus {
       border-color: var(--paper-accent);
     }
 
@@ -507,6 +522,220 @@
       transform: translateY(-1px);
       box-shadow: 0 5px 15px rgba(225, 0, 255, 0.45);
     }
+
+    /* Print Styles: Hide website navigation, toolbar, and sidebar when saving/printing PDF */
+    @media print {
+      body {
+        background: #ffffff !important;
+        color: #000000 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+
+      nav,
+      .navbar,
+      .controls-toolbar,
+      .paper-sidebar,
+      .theme-toggle-btn {
+        display: none !important;
+      }
+
+      .paper-workspace {
+        display: block !important;
+        max-width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+
+      .paper-main-canvas {
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        background: #ffffff !important;
+        color: #000000 !important;
+      }
+
+      [data-theme="dark"],
+      [data-paper-theme="dark"],
+      [data-theme="light"],
+      [data-paper-theme="light"] {
+        --heading-color: #000000 !important;
+        --text-main: #111111 !important;
+        --text-muted: #444444 !important;
+        --border-color: #dddddd !important;
+        --eq-bg: #f8fafc !important;
+      }
+
+      .section-heading,
+      .paper-title,
+      .abstract-text,
+      .paper-paragraph,
+      .author-name {
+        color: #000000 !important;
+      }
+
+      .abstract-card {
+        background: #f8fafc !important;
+        border: 1px solid #cbd5e1 !important;
+        border-left: 4px solid #0099cc !important;
+      }
+
+      .paper-table th {
+        background: #f1f5f9 !important;
+        color: #000000 !important;
+      }
+
+      .paper-table td {
+        color: #000000 !important;
+      }
+
+      @page {
+        margin: 1.5cm;
+        size: auto;
+      }
+    }
+
+    /* Mobile Responsiveness for Research Paper Reader */
+    @media (max-width: 768px) {
+      .controls-toolbar {
+        position: relative !important;
+        top: 0 !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        width: 100% !important;
+        padding: 0.75rem !important;
+        margin: 0.75rem auto 1rem auto !important;
+        gap: 0.65rem !important;
+        box-sizing: border-box !important;
+        border-radius: 12px !important;
+      }
+
+      .controls-toolbar .toolbar-group {
+        width: 100% !important;
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 0.45rem !important;
+      }
+
+      .model-selector-container {
+        width: 100% !important;
+        box-sizing: border-box !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 0.35rem !important;
+        padding: 0.5rem 0.65rem !important;
+        border-radius: 8px !important;
+      }
+
+      .model-label {
+        font-size: 0.72rem !important;
+      }
+
+      .paper-model-select {
+        width: 100% !important;
+        font-size: 0.8rem !important;
+        padding: 0.4rem 0.5rem !important;
+        box-sizing: border-box !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+      }
+
+      .toolbar-btn {
+        flex: 1 !important;
+        justify-content: center !important;
+        font-size: 0.75rem !important;
+        padding: 0.5rem 0.4rem !important;
+        min-width: 0 !important;
+      }
+
+      .toolbar-btn span {
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+      }
+
+      .paper-workspace {
+        flex-direction: column !important;
+        padding: 0 0.5rem !important;
+        gap: 1rem !important;
+      }
+
+      .paper-sidebar {
+        width: 100% !important;
+        position: relative !important;
+        top: 0 !important;
+        max-height: 180px !important;
+        overflow-y: auto !important;
+        padding: 0.85rem !important;
+        border-radius: 12px !important;
+        box-sizing: border-box !important;
+      }
+
+      .paper-main-canvas {
+        padding: 1.25rem 0.85rem !important;
+        border-radius: 12px !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+      }
+
+      .paper-title {
+        font-size: 1.35rem !important;
+        line-height: 1.3 !important;
+        margin-bottom: 1rem !important;
+      }
+
+      .journal-badge-bar {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 0.35rem !important;
+        font-size: 0.75rem !important;
+      }
+
+      .abstract-card {
+        padding: 1rem !important;
+      }
+
+      .paper-table {
+        display: block !important;
+        overflow-x: auto !important;
+        white-space: nowrap !important;
+        -webkit-overflow-scrolling: touch !important;
+        width: 100% !important;
+      }
+
+      .paper-table th,
+      .paper-table td {
+        padding: 0.55rem 0.65rem !important;
+        font-size: 0.78rem !important;
+      }
+
+      .chart-container-card {
+        padding: 1rem !important;
+      }
+
+      .equation-card {
+        padding: 0.85rem 0.75rem !important;
+        margin: 1rem 0 !important;
+        display: flex !important;
+        flex-direction: column-reverse !important;
+        align-items: center !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+      }
+
+      .equation-number {
+        position: static !important;
+        transform: none !important;
+        align-self: flex-end !important;
+        margin-bottom: 0.4rem !important;
+        font-size: 0.72rem !important;
+      }
+    }
   </style>
 </head>
 
@@ -517,7 +746,7 @@
       <div class="nav-left">
         <div class="brand">
           <img class="brand-logo" src="{{ url_for('static', filename='images/wastelogo.png') }}" alt="AquaVision Logo"
-            style="height: 44px; width: auto; object-fit: contain; filter: drop-shadow(0 0 8px rgba(0, 217, 255, 0.4));" />
+            style="height: 34px; width: auto; object-fit: contain; filter: drop-shadow(0 0 6px rgba(0, 217, 255, 0.4));" />
           <div class="brand-text">
             <div class="brand-title">AquaVision</div>
             <div class="brand-sub">Academic Research Manuscript Generator</div>
@@ -535,8 +764,10 @@
       </div>
       <div class="nav-right">
         <button class="theme-toggle-btn" id="themeToggle" aria-label="Toggle theme">
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
-          <span style="font-weight:700;">Dark Mode</span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+        </button>
+        <button class="mobile-menu-toggle" id="mobileMenuBtn" aria-label="Toggle Navigation">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" /></svg>
         </button>
       </div>
     </div>
@@ -548,41 +779,60 @@
       <!-- Dynamic Model Selector Dropdown -->
       <div class="model-selector-container">
         <span class="model-label">
-          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 15h3M1 9h3M1 15h3"/></svg>
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <rect x="4" y="4" width="16" height="16" rx="2" />
+            <rect x="9" y="9" width="6" height="6" />
+            <path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 15h3M1 9h3M1 15h3" />
+          </svg>
           Target Model:
         </span>
         <select id="paperModelSelector" class="paper-model-select">
           {% if per_model_analytics %}
-            {% for m_key, m_val in per_model_analytics.items() %}
-              <option value="{{ m_key }}" {% if m_key == selected_model_id %}selected{% endif %}>
-                {{ m_val.model_name }} ({{ m_val.map_50 }} mAP)
-              </option>
-            {% endfor %}
+          {% for m_key, m_val in per_model_analytics.items() %}
+          <option value="{{ m_key }}" {% if m_key==selected_model_id %}selected{% endif %}>
+            {{ m_val.model_name }} ({{ m_val.map_50 }} mAP)
+          </option>
+          {% endfor %}
           {% else %}
-            <option value="rt_detr" selected>RT-DETR (95.5% mAP)</option>
-            <option value="yolov8">YOLOv8s (93.8% mAP)</option>
-            <option value="taco_fasterrcnn">TACO Faster R-CNN (78.4% mAP)</option>
+          <option value="rt_detr" selected>RT-DETR (95.5% mAP)</option>
+          <option value="yolov8">YOLOv8s (93.8% mAP)</option>
+          <option value="taco_fasterrcnn">TACO Faster R-CNN (78.4% mAP)</option>
           {% endif %}
         </select>
       </div>
 
       <button class="toolbar-btn ghost" id="toggleColumnBtn">
-        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 5h7v14H4zM13 5h7v14h-7z"/></svg>
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M4 5h7v14H4zM13 5h7v14h-7z" />
+        </svg>
         <span>View Mode</span>
       </button>
     </div>
 
     <div class="toolbar-group">
-      <a id="exportDocxLink" href="/api/export-research-paper?format=docx&model={{ selected_model_id }}" class="toolbar-btn btn-docx">
-        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      <a id="exportDocxLink" href="/api/export-research-paper?format=docx&model={{ selected_model_id }}"
+        class="toolbar-btn btn-docx">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+          <polyline points="14 2 14 8 20 8" />
+          <line x1="16" y1="13" x2="8" y2="13" />
+          <line x1="16" y1="17" x2="8" y2="17" />
+        </svg>
         <span>Export Word</span>
       </a>
       <button class="toolbar-btn btn-pdf" id="printPdfBtn" onclick="window.print()">
-        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <polyline points="6 9 6 2 18 2 18 9" />
+          <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+          <rect x="6" y="14" width="12" height="8" />
+        </svg>
         <span>Export PDF</span>
       </button>
       <button class="toolbar-btn btn-bibtex" id="copyBibtexBtn">
-        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+        </svg>
         <span>Copy BibTeX</span>
       </button>
     </div>
@@ -592,7 +842,9 @@
     <!-- Left Navigation Outline Sidebar -->
     <aside class="paper-sidebar">
       <div class="sidebar-title">
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h7"/></svg>
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h7" />
+        </svg>
         Paper Navigation
       </div>
       <ul class="outline-list">
@@ -621,14 +873,16 @@
       <div class="journal-badge-bar full-width-element">
         <div>
           <span class="journal-tag">Peer-Reviewed Model Edition: {{ model_analytics.model_name }}</span>
-          <span style="margin-left: 0.75rem; color: var(--text-muted);">July 2026 Edition · Automated Wastage & Aquatic Eco-Monitoring</span>
+          <span style="margin-left: 0.75rem; color: var(--text-muted);">July 2026 Edition · Automated Wastage & Aquatic
+            Eco-Monitoring</span>
         </div>
         <div>DOI: 10.1016/j.aquavision.2026.{{ selected_model_id }}</div>
       </div>
 
       <!-- Paper Title Dynamic to Selected Model -->
       <h1 class="paper-title full-width-element">
-        HydraClean: An Intelligent Real-Time Floating Waste Detection Framework Using {{ model_analytics.model_name }} with Web-Based Environmental Analytics
+        HydraClean: An Intelligent Real-Time Floating Waste Detection Framework Using {{ model_analytics.model_name }}
+        with Web-Based Environmental Analytics
       </h1>
 
       <!-- Author Metadata -->
@@ -637,20 +891,40 @@
           <div class="author-name">Environmental Vision AI Systems Research Group</div>
           <div class="author-affil">Automated Wastage & Aquatic Eco-Monitoring Laboratory</div>
           <div class="author-affil">Department of Computer Science & Vision Systems</div>
-          <div class="author-affil" style="color: var(--paper-accent); font-weight: 600; margin-top: 0.2rem;">Model Benchmark Profile: {{ model_analytics.architecture }}</div>
+          <div class="author-affil" style="color: var(--paper-accent); font-weight: 600; margin-top: 0.2rem;">Model
+            Benchmark Profile: {{ model_analytics.architecture }}</div>
         </div>
       </div>
 
       <div class="paper-body-content">
         <!-- Abstract & Keywords -->
-        <section id="sec-abstract" class="paper-section full-width-element">
+        <section id="sec-abstract" class="paper-section">
           <div class="abstract-card">
             <div class="abstract-title">Abstract</div>
             <p class="abstract-text">
-              Real-time object detection in aquatic and municipal environments presents critical computer vision challenges due to variable illumination, partial submersion, scale variation, and dense background clutter. Approximately 11 million metric tons of plastic waste enter aquatic ecosystems annually, severely threatening marine biodiversity and municipal water treatment infrastructure. In this paper, we present <strong>HydraClean</strong>, an intelligent real-time floating waste detection framework leveraging fine-tuned <strong>{{ model_analytics.model_name }} ({{ model_analytics.architecture }})</strong> integrated with a web-based environmental analytics dashboard. Experimental validation across a curated aquatic waste dataset of {{ model_analytics.val_dataset_size }} demonstrates that {{ model_analytics.model_name }} achieves <strong>{{ model_analytics.map_50 }} mAP@0.5</strong>, <strong>{{ model_analytics.map_50_95 }} mAP@0.5:0.95</strong>, <strong>{{ model_analytics.precision }} Precision</strong>, <strong>{{ model_analytics.recall }} Recall</strong>, and <strong>{{ model_analytics.f1_score }} F1-Score</strong> at an average IoU of <strong>{{ model_analytics.avg_iou }}</strong>. Operating at an inference speed of <strong>{{ model_analytics.latency }} ({{ model_analytics.fps }})</strong> with a model footprint of <strong>{{ model_analytics.model_size }} ({{ model_analytics.parameters }} parameters, {{ model_analytics.gflops }} GFLOPs)</strong>, the system provides high precision multi-class detection across {{ model_analytics.total_classes }}. The platform provides real-time waste category frequency histograms, spatial hotspot heatmaps, and automated PDF/Word report generation.
+              Real-time object detection in aquatic and municipal environments presents critical computer vision
+              challenges due to variable illumination, partial submersion, scale variation, and dense background
+              clutter. Approximately 11 million metric tons of plastic waste enter aquatic ecosystems annually, severely
+              threatening marine biodiversity and municipal water treatment infrastructure. In this paper, we present
+              <strong>HydraClean</strong>, an intelligent real-time floating waste detection framework leveraging
+              fine-tuned <strong>{{ model_analytics.model_name }} ({{ model_analytics.architecture }})</strong>
+              integrated with a web-based environmental analytics dashboard. Experimental validation across a curated
+              aquatic waste dataset of {{ model_analytics.val_dataset_size }} demonstrates that {{
+              model_analytics.model_name }} achieves <strong>{{ model_analytics.map_50 }} mAP@0.5</strong>, <strong>{{
+                model_analytics.map_50_95 }} mAP@0.5:0.95</strong>, <strong>{{ model_analytics.precision }}
+                Precision</strong>, <strong>{{ model_analytics.recall }} Recall</strong>, and <strong>{{
+                model_analytics.f1_score }} F1-Score</strong> at an average IoU of <strong>{{ model_analytics.avg_iou
+                }}</strong>. Operating at an inference speed of <strong>{{ model_analytics.latency }} ({{
+                model_analytics.fps }})</strong> with a model footprint of <strong>{{ model_analytics.model_size }} ({{
+                model_analytics.parameters }} parameters, {{ model_analytics.gflops }} GFLOPs)</strong>, the system
+              provides high precision multi-class detection across {{ model_analytics.total_classes }}. The platform
+              provides real-time waste category frequency histograms, spatial hotspot heatmaps, and automated PDF/Word
+              report generation.
             </p>
             <div class="keywords-row">
-              <strong>Keywords:</strong> Floating Waste Detection, {{ model_analytics.model_name }}, Computer Vision, Environmental Monitoring, Object Detection, Deep Learning, Smart Water Management, Artificial Intelligence.
+              <strong>Keywords:</strong> Floating Waste Detection, {{ model_analytics.model_name }}, Computer Vision,
+              Environmental Monitoring, Object Detection, Deep Learning, Smart Water Management, Artificial
+              Intelligence.
             </div>
           </div>
         </section>
@@ -658,22 +932,37 @@
         <!-- Section 1: Introduction -->
         <section id="sec-1" class="paper-section">
           <h2 class="section-heading">1. Introduction</h2>
-          <h3 style="font-size: 1.1rem; color: var(--heading-color); margin: 1rem 0 0.5rem;">1.1 Background & Environmental Motivation</h3>
+          <h3 style="font-size: 1.1rem; color: var(--heading-color); margin: 1rem 0 0.5rem;">1.1 Background &
+            Environmental Motivation</h3>
           <p class="paper-paragraph">
-            Aquatic pollution caused by floating plastic debris, water hyacinths, and industrial macro-waste represents an urgent global ecological crisis. According to United Nations Environment Programme (UNEP) estimates, approximately 11 million metric tons of plastic enter global waterways every year—a volume projected to triple by 2040 without aggressive intervention. Floating waste degrades water quality, entangles aquatic fauna, introduces microplastics into marine food webs, and clogs municipal drainage infrastructure, elevating flood risks in urban smart cities.
+            Aquatic pollution caused by floating plastic debris, water hyacinths, and industrial macro-waste represents
+            an urgent global ecological crisis. According to United Nations Environment Programme (UNEP) estimates,
+            approximately 11 million metric tons of plastic enter global waterways every year—a volume projected to
+            triple by 2040 without aggressive intervention. Floating waste degrades water quality, entangles aquatic
+            fauna, introduces microplastics into marine food webs, and clogs municipal drainage infrastructure,
+            elevating flood risks in urban smart cities.
           </p>
 
           <h3 style="font-size: 1.1rem; color: var(--heading-color); margin: 1rem 0 0.5rem;">1.2 Problem Statement</h3>
           <p class="paper-paragraph">
-            Conventional water body monitoring relies on manual visual inspection, periodic boat surveys, or static CCTV monitoring requiring continuous human oversight. These methods suffer from high operational expenditure, poor scalability across expansive river basins, delayed response times, and an inability to track micro-spatial density distributions or generate longitudinal ecological trends.
+            Conventional water body monitoring relies on manual visual inspection, periodic boat surveys, or static CCTV
+            monitoring requiring continuous human oversight. These methods suffer from high operational expenditure,
+            poor scalability across expansive river basins, delayed response times, and an inability to track
+            micro-spatial density distributions or generate longitudinal ecological trends.
           </p>
 
-          <h3 style="font-size: 1.1rem; color: var(--heading-color); margin: 1rem 0 0.5rem;">1.3 Research Objectives & Key Contributions</h3>
-          <ul style="font-family: 'Merriweather', serif; font-size: 0.95rem; line-height: 1.85; color: var(--text-main); margin-left: 1.5rem;">
-            <li><strong>Customized Model Architecture:</strong> Fine-tuned {{ model_analytics.model_name }} leveraging {{ model_analytics.architecture }} for aquatic environments.</li>
-            <li><strong>Empirical Validation:</strong> Benchmarked across high-resolution water body images, achieving {{ model_analytics.map_50 }} mAP@0.5 at {{ model_analytics.fps }}.</li>
-            <li><strong>Systematic Ablation Study:</strong> Evaluated data augmentations, backbone variants, and confidence thresholds to isolate optimal hyperparameters.</li>
-            <li><strong>Web Analytics Suite:</strong> Designed a browser-native environmental analytics dashboard featuring real-time histograms, confidence percentiles, and automated Word/LaTeX export.</li>
+          <h3 style="font-size: 1.1rem; color: var(--heading-color); margin: 1rem 0 0.5rem;">1.3 Research Objectives &
+            Key Contributions</h3>
+          <ul
+            style="font-family: 'Merriweather', serif; font-size: 0.95rem; line-height: 1.85; color: var(--text-main); margin-left: 1.5rem;">
+            <li><strong>Customized Model Architecture:</strong> Fine-tuned {{ model_analytics.model_name }} leveraging
+              {{ model_analytics.architecture }} for aquatic environments.</li>
+            <li><strong>Empirical Validation:</strong> Benchmarked across high-resolution water body images, achieving
+              {{ model_analytics.map_50 }} mAP@0.5 at {{ model_analytics.fps }}.</li>
+            <li><strong>Systematic Ablation Study:</strong> Evaluated data augmentations, backbone variants, and
+              confidence thresholds to isolate optimal hyperparameters.</li>
+            <li><strong>Web Analytics Suite:</strong> Designed a browser-native environmental analytics dashboard
+              featuring real-time histograms, confidence percentiles, and automated Word/LaTeX export.</li>
           </ul>
         </section>
 
@@ -681,7 +970,9 @@
         <section id="sec-2" class="paper-section">
           <h2 class="section-heading">2. Literature Survey & Benchmark Comparison</h2>
           <p class="paper-paragraph">
-            Object detection in aquatic domains has evolved from traditional handcrafted features to deep convolutional neural networks and vision transformers. Table 1 compares benchmark architectures against our fine-tuned <strong>{{ model_analytics.model_name }}</strong> setup.
+            Object detection in aquatic domains has evolved from traditional handcrafted features to deep convolutional
+            neural networks and vision transformers. Table 1 compares benchmark architectures against our fine-tuned
+            <strong>{{ model_analytics.model_name }}</strong> setup.
           </p>
           <div class="full-width-element">
             <table class="paper-table">
@@ -732,7 +1023,8 @@
         <!-- Section 3: Proposed Methodology -->
         <section id="sec-3" class="paper-section">
           <h2 class="section-heading">3. Proposed Methodology — {{ model_analytics.model_name }}</h2>
-          <h3 style="font-size: 1.1rem; color: var(--heading-color); margin: 1rem 0 0.5rem;">3.1 System Architectural Pipeline</h3>
+          <h3 style="font-size: 1.1rem; color: var(--heading-color); margin: 1rem 0 0.5rem;">3.1 System Architectural
+            Pipeline</h3>
           <div class="pseudocode-box full-width-element">
             <div class="pseudocode-header">System Pipeline for {{ model_analytics.model_name }}</div>
             [ Input Image (640x640) ] ──> [ Preprocessing & Normalization ]<br>
@@ -742,7 +1034,8 @@
             ──> [ Category Histograms & Automated Report Export (.docx / .tex) ]
           </div>
 
-          <h3 style="font-size: 1.1rem; color: var(--heading-color); margin: 1.5rem 0 0.5rem;">3.2 Class-Wise Performance Metric Breakdown — {{ model_analytics.model_name }}</h3>
+          <h3 style="font-size: 1.1rem; color: var(--heading-color); margin: 1.5rem 0 0.5rem;">3.2 Class-Wise
+            Performance Metric Breakdown — {{ model_analytics.model_name }}</h3>
           <div class="full-width-element">
             <table class="paper-table">
               <thead>
@@ -758,27 +1051,27 @@
               </thead>
               <tbody>
                 {% if model_analytics.class_breakdown %}
-                  {% for c_row in model_analytics.class_breakdown %}
-                    <tr>
-                      <td><strong>{{ c_row.class_name }}</strong></td>
-                      <td>{{ c_row.ap }}</td>
-                      <td>{{ c_row.precision }}</td>
-                      <td>{{ c_row.recall }}</td>
-                      <td>{{ c_row.f1 }}</td>
-                      <td>{{ c_row.expected_iou }}</td>
-                      <td>{{ c_row.challenge }}</td>
-                    </tr>
-                  {% endfor %}
+                {% for c_row in model_analytics.class_breakdown %}
+                <tr>
+                  <td><strong>{{ c_row.class_name }}</strong></td>
+                  <td>{{ c_row.ap }}</td>
+                  <td>{{ c_row.precision }}</td>
+                  <td>{{ c_row.recall }}</td>
+                  <td>{{ c_row.f1 }}</td>
+                  <td>{{ c_row.expected_iou }}</td>
+                  <td>{{ c_row.challenge }}</td>
+                </tr>
+                {% endfor %}
                 {% else %}
-                  <tr>
-                    <td>Plastic Bottle</td>
-                    <td>94.2%</td>
-                    <td>94.5%</td>
-                    <td>92.1%</td>
-                    <td>0.933</td>
-                    <td>0.81</td>
-                    <td>Specular reflection on PET</td>
-                  </tr>
+                <tr>
+                  <td>Plastic Bottle</td>
+                  <td>94.2%</td>
+                  <td>94.5%</td>
+                  <td>92.1%</td>
+                  <td>0.933</td>
+                  <td>0.81</td>
+                  <td>Specular reflection on PET</td>
+                </tr>
                 {% endif %}
               </tbody>
             </table>
@@ -789,10 +1082,12 @@
         <section id="sec-4" class="paper-section">
           <h2 class="section-heading">4. Mathematical Formulation</h2>
           <p class="paper-paragraph">
-            The mathematical formulation governing non-maximum suppression, IoU alignment, bounding box regression, and mean Average Precision (mAP) for <strong>{{ model_analytics.model_name }}</strong> is detailed below:
+            The mathematical formulation governing non-maximum suppression, IoU alignment, bounding box regression, and
+            mean Average Precision (mAP) for <strong>{{ model_analytics.model_name }}</strong> is detailed below:
           </p>
           <div class="equation-card full-width-element">
-            $$\mathcal{L}_{\text{total}} = \lambda_{\text{cls}} \mathcal{L}_{\text{cls}} + \lambda_{\text{box}} \mathcal{L}_{\text{box}} + \lambda_{\text{giou}} \mathcal{L}_{\text{giou}}$$
+            $$\mathcal{L}_{\text{total}} = \lambda_{\text{cls}} \mathcal{L}_{\text{cls}} + \lambda_{\text{box}}
+            \mathcal{L}_{\text{box}} + \lambda_{\text{giou}} \mathcal{L}_{\text{giou}}$$
             <span class="equation-number">(1)</span>
           </div>
 
@@ -802,12 +1097,14 @@
           </div>
 
           <div class="equation-card full-width-element">
-            $$F_1\text{-Score} = 2 \cdot \frac{P \cdot R}{P + R}, \quad \text{IoU}(B_{\text{pred}}, B_{\text{gt}}) = \frac{\text{Area}(B_{\text{pred}} \cap B_{\text{gt}})}{\text{Area}(B_{\text{pred}} \cup B_{\text{gt}})}$$
+            $$F_1\text{-Score} = 2 \cdot \frac{P \cdot R}{P + R}, \quad \text{IoU}(B_{\text{pred}}, B_{\text{gt}}) =
+            \frac{\text{Area}(B_{\text{pred}} \cap B_{\text{gt}})}{\text{Area}(B_{\text{pred}} \cup B_{\text{gt}})}$$
             <span class="equation-number">(3)</span>
           </div>
 
           <div class="equation-card full-width-element">
-            $$\text{mAP} = \frac{1}{N_{\text{classes}}} \sum_{c=1}^{N_{\text{classes}}} \int_{0}^{1} P_c(R_c) \, dR_c, \quad \text{FPS} = \frac{1000}{T_{\text{latency}} \text{ (ms)}}$$
+            $$\text{mAP} = \frac{1}{N_{\text{classes}}} \sum_{c=1}^{N_{\text{classes}}} \int_{0}^{1} P_c(R_c) \, dR_c,
+            \quad \text{FPS} = \frac{1000}{T_{\text{latency}} \text{ (ms)}}$$
             <span class="equation-number">(4)</span>
           </div>
         </section>
@@ -816,7 +1113,8 @@
         <section id="sec-5" class="paper-section">
           <h2 class="section-heading">5. Experimental Setup & Technical Environment</h2>
           <p class="paper-paragraph">
-            All models were trained and benchmarked under identical hardware and software environments to isolate architectural advantages for floating waste detection.
+            All models were trained and benchmarked under identical hardware and software environments to isolate
+            architectural advantages for floating waste detection.
           </p>
           <div class="full-width-element">
             <table class="paper-table">
@@ -852,7 +1150,8 @@
             </table>
           </div>
 
-          <h3 style="font-size: 1.1rem; color: var(--heading-color); margin: 1.5rem 0 0.5rem;">5.1 Training Hyperparameters — {{ model_analytics.model_name }}</h3>
+          <h3 style="font-size: 1.1rem; color: var(--heading-color); margin: 1.5rem 0 0.5rem;">5.1 Training
+            Hyperparameters — {{ model_analytics.model_name }}</h3>
           <div class="full-width-element">
             <table class="paper-table">
               <thead>
@@ -892,7 +1191,8 @@
         <section id="sec-6" class="paper-section">
           <h2 class="section-heading">6. Performance Evaluation & Benchmark Summary</h2>
           <p class="paper-paragraph">
-            Evaluation metrics for <strong>{{ model_analytics.model_name }}</strong> across the validation dataset of {{ model_analytics.val_dataset_size }}:
+            Evaluation metrics for <strong>{{ model_analytics.model_name }}</strong> across the validation dataset of {{
+            model_analytics.val_dataset_size }}:
           </p>
           <div class="full-width-element">
             <table class="paper-table">
@@ -953,40 +1253,56 @@
         </section>
 
         <!-- Section 7: Experimental Results & Visualizations -->
-        <section id="sec-7" class="paper-section full-width-element">
+        <section id="sec-7" class="paper-section">
           <h2 class="section-heading">7. Experimental Results & Visual Detection Overlays</h2>
           <p class="paper-paragraph">
-            Detection outputs from our <strong>{{ model_analytics.model_name }}</strong> floating waste vision pipeline retrieved directly from local storage telemetry for the selected model profile.
+            Detection outputs from our <strong>{{ model_analytics.model_name }}</strong> floating waste vision pipeline
+            retrieved directly from local storage telemetry for the selected model profile.
           </p>
 
-          <!-- Detection Images Visual Gallery (Dynamic from LocalStorage) -->
+          <!-- Detection Images Visual Gallery (Dynamic from LocalStorage for Selected Model Only) -->
           <div class="gallery-grid" id="paperGalleryGrid">
             <div class="gallery-card">
-              <img src="{{ url_for('static', filename='results/sample_rt_detr_detection.jpg') }}" alt="Floating Waste Detection" onerror="this.src='/static/results/gallery_rt_detr_1.jpg'">
+              <img src="{{ url_for('static', filename='results/sample_' ~ selected_model_id ~ '_detection.jpg') }}"
+                alt="Floating Waste Detection"
+                onerror="this.src='/static/results/gallery_{{ selected_model_id }}_1.jpg'">
               <div class="gallery-card-info">
-                <div style="font-weight: 800; font-size: 0.9rem; color: var(--heading-color);">{{ model_analytics.model_name }} Multi-Class Detection</div>
-                <div style="font-size: 0.78rem; color: var(--paper-accent); font-weight: 700; margin-top: 0.2rem;">{{ model_analytics.map_50 }} mAP@0.5 · {{ model_analytics.total_classes }}</div>
+                <div style="font-weight: 800; font-size: 0.9rem; color: var(--heading-color);">{{
+                  model_analytics.model_name }} Multi-Class Detection</div>
+                <div style="font-size: 0.78rem; color: var(--paper-accent); font-weight: 700; margin-top: 0.2rem;">{{
+                  model_analytics.map_50 }} mAP@0.5 · {{ model_analytics.total_classes }}</div>
               </div>
             </div>
             <div class="gallery-card">
-              <img src="{{ url_for('static', filename='results/gallery_rt_detr_1.jpg') }}" alt="Aquatic Debris" onerror="this.src='/static/results/gallery_rt_detr_2.jpg'">
+              <img src="{{ url_for('static', filename='results/gallery_' ~ selected_model_id ~ '_1.jpg') }}"
+                alt="Aquatic Debris" onerror="this.src='/static/results/gallery_{{ selected_model_id }}_2.jpg'">
               <div class="gallery-card-info">
-                <div style="font-weight: 800; font-size: 0.9rem; color: var(--heading-color);">High-Density Debris Clutter</div>
-                <div style="font-size: 0.78rem; color: var(--paper-accent-secondary); font-weight: 700; margin-top: 0.2rem;">Vegetation & Plastic Clusters</div>
+                <div style="font-weight: 800; font-size: 0.9rem; color: var(--heading-color);">High-Density Debris
+                  Clutter</div>
+                <div
+                  style="font-size: 0.78rem; color: var(--paper-accent-secondary); font-weight: 700; margin-top: 0.2rem;">
+                  Vegetation & Plastic Clusters</div>
               </div>
             </div>
             <div class="gallery-card">
-              <img src="{{ url_for('static', filename='results/gallery_rt_detr_2.jpg') }}" alt="Plastic Bottle Detection" onerror="this.src='/static/results/gallery_rt_detr_3.jpg'">
+              <img src="{{ url_for('static', filename='results/gallery_' ~ selected_model_id ~ '_2.jpg') }}"
+                alt="Plastic Bottle Detection"
+                onerror="this.src='/static/results/gallery_{{ selected_model_id }}_3.jpg'">
               <div class="gallery-card-info">
-                <div style="font-weight: 800; font-size: 0.9rem; color: var(--heading-color);">Plastic Bottle Localization</div>
-                <div style="font-size: 0.78rem; color: var(--paper-gold); font-weight: 700; margin-top: 0.2rem;">Submerged Debris Detection</div>
+                <div style="font-weight: 800; font-size: 0.9rem; color: var(--heading-color);">Plastic Bottle
+                  Localization</div>
+                <div style="font-size: 0.78rem; color: var(--paper-gold); font-weight: 700; margin-top: 0.2rem;">
+                  Submerged Debris Detection</div>
               </div>
             </div>
             <div class="gallery-card">
-              <img src="{{ url_for('static', filename='results/gallery_rt_detr_3.jpg') }}" alt="Urban River Scan" onerror="this.src='/static/results/gallery_rt_detr_4.jpg'">
+              <img src="{{ url_for('static', filename='results/gallery_' ~ selected_model_id ~ '_3.jpg') }}"
+                alt="Urban River Scan" onerror="this.src='/static/results/gallery_{{ selected_model_id }}_4.jpg'">
               <div class="gallery-card-info">
-                <div style="font-weight: 800; font-size: 0.9rem; color: var(--heading-color);">Urban River Gate Surveillance</div>
-                <div style="font-size: 0.78rem; color: var(--paper-accent); font-weight: 700; margin-top: 0.2rem;">Real-time Stream Feed</div>
+                <div style="font-weight: 800; font-size: 0.9rem; color: var(--heading-color);">Urban River Gate
+                  Surveillance</div>
+                <div style="font-size: 0.78rem; color: var(--paper-accent); font-weight: 700; margin-top: 0.2rem;">
+                  Real-time Stream Feed</div>
               </div>
             </div>
           </div>
@@ -994,33 +1310,48 @@
 
         <!-- Section 8: Visual Detection Analysis & Failure Modes -->
         <section id="sec-8" class="paper-section">
-          <h2 class="section-heading">8. Visual Detection Analysis & Failure Modes — {{ model_analytics.model_name }}</h2>
-          <h3 style="font-size: 1.1rem; color: var(--heading-color); margin: 1rem 0 0.5rem;">8.1 Qualitative Performance Assessment</h3>
+          <h2 class="section-heading">8. Visual Detection Analysis & Failure Modes — {{ model_analytics.model_name }}
+          </h2>
+          <h3 style="font-size: 1.1rem; color: var(--heading-color); margin: 1rem 0 0.5rem;">8.1 Qualitative Performance
+            Assessment</h3>
           <p class="paper-paragraph">
-            Experimental evaluation demonstrates that <strong>{{ model_analytics.model_name }}</strong> maintains strong feature representation across varying water turbidity levels, high solar glare, and wave distortions. Non-maximum suppression (NMS) handling prevents bounding box duplication in dense waste accumulation zones.
+            Experimental evaluation demonstrates that <strong>{{ model_analytics.model_name }}</strong> maintains strong
+            feature representation across varying water turbidity levels, high solar glare, and wave distortions.
+            Non-maximum suppression (NMS) handling prevents bounding box duplication in dense waste accumulation zones.
           </p>
 
-          <h3 style="font-size: 1.1rem; color: var(--heading-color); margin: 1.5rem 0 0.5rem;">8.2 Failure Mode Analysis & Mitigation</h3>
-          <ul style="font-family: 'Merriweather', serif; font-size: 0.95rem; line-height: 1.85; color: var(--text-main); margin-left: 1.5rem;">
-            <li><strong>Specular Reflection & Sun Glare:</strong> Direct sunlight reflections on smooth PET plastic bottles occasionally cause confidence score drops (-3.5%). <em>Mitigation: MixUp & Color Jitter augmentation during training.</em></li>
-            <li><strong>Severe Submersion (&gt;80% Depth):</strong> Objects submerged beneath murky river water lose visible edge contours, slightly reducing Recall. <em>Mitigation: Temporal multi-frame tracking smoothing across video feeds.</em></li>
-            <li><strong>Turbulent Whitefoam Ripples:</strong> Fast-moving river current foam can trigger rare false positive detections (&lt;2.1%). <em>Mitigation: Confidence threshold tuning ($\tau = 0.20$).</em></li>
+          <h3 style="font-size: 1.1rem; color: var(--heading-color); margin: 1.5rem 0 0.5rem;">8.2 Failure Mode Analysis
+            & Mitigation</h3>
+          <ul
+            style="font-family: 'Merriweather', serif; font-size: 0.95rem; line-height: 1.85; color: var(--text-main); margin-left: 1.5rem;">
+            <li><strong>Specular Reflection & Sun Glare:</strong> Direct sunlight reflections on smooth PET plastic
+              bottles occasionally cause confidence score drops (-3.5%). <em>Mitigation: MixUp & Color Jitter
+                augmentation during training.</em></li>
+            <li><strong>Severe Submersion (&gt;80% Depth):</strong> Objects submerged beneath murky river water lose
+              visible edge contours, slightly reducing Recall. <em>Mitigation: Temporal multi-frame tracking smoothing
+                across video feeds.</em></li>
+            <li><strong>Turbulent Whitefoam Ripples:</strong> Fast-moving river current foam can trigger rare false
+              positive detections (&lt;2.1%). <em>Mitigation: Confidence threshold tuning ($\tau = 0.20$).</em></li>
           </ul>
         </section>
 
         <!-- Section 9: Analytics & Histograms Dynamic to Selected Model -->
-        <section id="sec-9" class="paper-section full-width-element">
+        <section id="sec-9" class="paper-section">
           <h2 class="section-heading">9. Analytics & Detection Histograms — {{ model_analytics.model_name }}</h2>
           <p class="paper-paragraph">
-            The web framework computes real-time category frequency histograms and confidence score distributions dynamically for <strong>{{ model_analytics.model_name }}</strong>.
+            The web framework computes real-time category frequency histograms and confidence score distributions
+            dynamically for <strong>{{ model_analytics.model_name }}</strong>.
           </p>
 
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; margin: 1.75rem 0;">
+          <div class="full-width-element"
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; margin: 1.75rem 0;">
             <!-- Category Frequency Histogram -->
             <div class="chart-container-card">
-              <h4 style="font-size: 0.95rem; font-weight: 800; color: var(--heading-color); margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
-                <span>📊 Category Frequency Histogram ({{ model_analytics.model_name }})</span>
-                <span style="font-size: 0.75rem; color: var(--paper-accent); font-weight: 700;">{{ model_analytics.val_dataset_size }}</span>
+              <h4
+                style="font-size: 0.95rem; font-weight: 800; color: var(--heading-color); margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
+                <span>Category Frequency Histogram ({{ model_analytics.model_name }})</span>
+                <span id="paperCatBadge" style="font-size: 0.75rem; color: var(--paper-accent); font-weight: 700;">{{
+                  model_analytics.val_dataset_size }}</span>
               </h4>
               <div style="height: 240px; position: relative;">
                 <canvas id="paperCategoryChart"></canvas>
@@ -1029,9 +1360,12 @@
 
             <!-- Confidence Tiers Histogram -->
             <div class="chart-container-card">
-              <h4 style="font-size: 0.95rem; font-weight: 800; color: var(--heading-color); margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
-                <span>📈 Confidence Score Bins ({{ model_analytics.model_name }})</span>
-                <span style="font-size: 0.75rem; color: var(--paper-accent-secondary); font-weight: 700;">Avg {{ model_analytics.precision }} Conf</span>
+              <h4
+                style="font-size: 0.95rem; font-weight: 800; color: var(--heading-color); margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
+                <span>Confidence Score Bins ({{ model_analytics.model_name }})</span>
+                <span id="paperConfBadge"
+                  style="font-size: 0.75rem; color: var(--paper-accent-secondary); font-weight: 700;">Avg {{
+                  model_analytics.precision }} Conf</span>
               </h4>
               <div style="height: 240px; position: relative;">
                 <canvas id="paperConfidenceChart"></canvas>
@@ -1041,13 +1375,16 @@
         </section>
 
         <!-- Section 10: Comparative & Ablation -->
-        <section id="sec-10" class="paper-section full-width-element">
+        <section id="sec-10" class="paper-section">
           <h2 class="section-heading">10. Comparative Analysis & Systematic Ablation Study</h2>
           <p class="paper-paragraph">
-            We perform a comprehensive comparative analysis across all registered vision architectures in the <strong>HydraClean</strong> ecosystem, followed by systematic ablation experiments isolating data augmentation and confidence threshold impact.
+            We perform a comprehensive comparative analysis across all registered vision architectures in the
+            <strong>HydraClean</strong> ecosystem, followed by systematic ablation experiments isolating data
+            augmentation and confidence threshold impact.
           </p>
 
-          <h3 style="font-size: 1.1rem; color: var(--heading-color); margin: 1.5rem 0 0.5rem;">10.1 Multi-Model Benchmark Comparison Matrix</h3>
+          <h3 style="font-size: 1.1rem; color: var(--heading-color); margin: 1.5rem 0 0.5rem;">10.1 Multi-Model
+            Benchmark Comparison Matrix</h3>
           <div class="full-width-element">
             <table class="paper-table">
               <thead>
@@ -1065,42 +1402,48 @@
               </thead>
               <tbody>
                 {% if per_model_analytics %}
-                  {% for m_key, m_val in per_model_analytics.items() %}
-                    <tr {% if m_key == selected_model_id %}style="background: rgba(0, 217, 255, 0.15); font-weight: 800; border-left: 4px solid var(--paper-accent);"{% endif %}>
-                      <td>
-                        <strong>{{ m_val.model_name }}</strong>
-                        {% if m_key == selected_model_id %}<span class="journal-tag" style="margin-left: 0.4rem; font-size: 0.68rem; padding: 0.1rem 0.4rem;">SELECTED</span>{% endif %}
-                      </td>
-                      <td>{{ m_val.precision }}</td>
-                      <td>{{ m_val.recall }}</td>
-                      <td><strong>{{ m_val.map_50 }}</strong></td>
-                      <td>{{ m_val.map_50_95 }}</td>
-                      <td>{{ m_val.f1_score }}</td>
-                      <td>{{ m_val.latency }}</td>
-                      <td>{{ m_val.fps }}</td>
-                      <td>{{ m_val.model_size }}</td>
-                    </tr>
-                  {% endfor %}
+                {% for m_key, m_val in per_model_analytics.items() %}
+                <tr {% if m_key==selected_model_id
+                  %}style="background: rgba(0, 217, 255, 0.15); font-weight: 800; border-left: 4px solid var(--paper-accent);"
+                  {% endif %}>
+                  <td>
+                    <strong>{{ m_val.model_name }}</strong>
+                    {% if m_key == selected_model_id %}<span class="journal-tag"
+                      style="margin-left: 0.4rem; font-size: 0.68rem; padding: 0.1rem 0.4rem;">SELECTED</span>{% endif
+                    %}
+                  </td>
+                  <td>{{ m_val.precision }}</td>
+                  <td>{{ m_val.recall }}</td>
+                  <td><strong>{{ m_val.map_50 }}</strong></td>
+                  <td>{{ m_val.map_50_95 }}</td>
+                  <td>{{ m_val.f1_score }}</td>
+                  <td>{{ m_val.latency }}</td>
+                  <td>{{ m_val.fps }}</td>
+                  <td>{{ m_val.model_size }}</td>
+                </tr>
+                {% endfor %}
                 {% else %}
-                  <tr style="background: rgba(0, 217, 255, 0.15); font-weight: 800;">
-                    <td><strong>{{ model_analytics.model_name }}</strong></td>
-                    <td>{{ model_analytics.precision }}</td>
-                    <td>{{ model_analytics.recall }}</td>
-                    <td>{{ model_analytics.map_50 }}</td>
-                    <td>{{ model_analytics.map_50_95 }}</td>
-                    <td>{{ model_analytics.f1_score }}</td>
-                    <td>{{ model_analytics.latency }}</td>
-                    <td>{{ model_analytics.fps }}</td>
-                    <td>{{ model_analytics.model_size }}</td>
-                  </tr>
+                <tr style="background: rgba(0, 217, 255, 0.15); font-weight: 800;">
+                  <td><strong>{{ model_analytics.model_name }}</strong></td>
+                  <td>{{ model_analytics.precision }}</td>
+                  <td>{{ model_analytics.recall }}</td>
+                  <td>{{ model_analytics.map_50 }}</td>
+                  <td>{{ model_analytics.map_50_95 }}</td>
+                  <td>{{ model_analytics.f1_score }}</td>
+                  <td>{{ model_analytics.latency }}</td>
+                  <td>{{ model_analytics.fps }}</td>
+                  <td>{{ model_analytics.model_size }}</td>
+                </tr>
                 {% endif %}
               </tbody>
             </table>
           </div>
 
-          <h3 style="font-size: 1.1rem; color: var(--heading-color); margin: 2rem 0 0.5rem;">10.2 Ablation Study 1: Impact of Data Augmentation Techniques</h3>
+          <h3 style="font-size: 1.1rem; color: var(--heading-color); margin: 2rem 0 0.5rem;">10.2 Ablation Study 1:
+            Impact of Data Augmentation Techniques</h3>
           <p class="paper-paragraph">
-            Progressive evaluation of data augmentation strategies on model detection performance for <strong>{{ model_analytics.model_name }}</strong>:
+            Progressive evaluation of data augmentation strategies on model detection performance for <strong>{{
+              model_analytics.model_name }}</strong>:
           </p>
           <div class="full-width-element">
             <table class="paper-table">
@@ -1115,6 +1458,18 @@
                 </tr>
               </thead>
               <tbody>
+                {% if model_analytics.ablation_augmentation %}
+                {% for a_row in model_analytics.ablation_augmentation %}
+                <tr {% if a_row.is_final %}style="background: rgba(0, 217, 255, 0.12); font-weight: 800;" {% endif %}>
+                  <td><strong>{{ a_row.config }}</strong></td>
+                  <td>{{ a_row.augmentations }}</td>
+                  <td>{{ a_row.precision }}</td>
+                  <td>{{ a_row.recall }}</td>
+                  <td><strong>{{ a_row.map_50 }}</strong></td>
+                  <td>{{ a_row.delta }}</td>
+                </tr>
+                {% endfor %}
+                {% else %}
                 <tr>
                   <td>Baseline</td>
                   <td>Basic Image Resize (640x640) & Normalization</td>
@@ -1147,13 +1502,16 @@
                   <td><strong>{{ model_analytics.map_50 }}</strong></td>
                   <td><strong>+1.3% (Total +6.4%)</strong></td>
                 </tr>
+                {% endif %}
               </tbody>
             </table>
           </div>
 
-          <h3 style="font-size: 1.1rem; color: var(--heading-color); margin: 2rem 0 0.5rem;">10.3 Ablation Study 2: Confidence Threshold ($\tau$) Sensitivity</h3>
+          <h3 style="font-size: 1.1rem; color: var(--heading-color); margin: 2rem 0 0.5rem;">10.3 Ablation Study 2:
+            Confidence Threshold ($\tau$) Sensitivity</h3>
           <p class="paper-paragraph">
-            Evaluating detection trade-offs across confidence score thresholds for deployment on live streams:
+            Evaluating detection trade-offs across confidence score thresholds for <strong>{{ model_analytics.model_name
+              }}</strong> deployment on live streams:
           </p>
           <div class="full-width-element">
             <table class="paper-table">
@@ -1168,6 +1526,18 @@
                 </tr>
               </thead>
               <tbody>
+                {% if model_analytics.ablation_confidence %}
+                {% for c_row in model_analytics.ablation_confidence %}
+                <tr {% if c_row.is_default %}style="background: rgba(0, 217, 255, 0.12); font-weight: 800;" {% endif %}>
+                  <td><strong>{{ c_row.threshold }}</strong></td>
+                  <td>{{ c_row.precision }}</td>
+                  <td>{{ c_row.recall }}</td>
+                  <td>{{ c_row.f1 }}</td>
+                  <td>{{ c_row.fpr }}</td>
+                  <td>{{ c_row.suitability }}</td>
+                </tr>
+                {% endfor %}
+                {% else %}
                 <tr>
                   <td>$\tau = 0.10$</td>
                   <td>82.4%</td>
@@ -1200,6 +1570,7 @@
                   <td>1.2%</td>
                   <td>Strict filtering; conservative cleanup trigger</td>
                 </tr>
+                {% endif %}
               </tbody>
             </table>
           </div>
@@ -1209,13 +1580,22 @@
         <section id="sec-11" class="paper-section">
           <h2 class="section-heading">11. Discussion</h2>
           <p class="paper-paragraph">
-            The empirical results confirm that <strong>{{ model_analytics.model_name }}</strong> leveraging <strong>{{ model_analytics.architecture }}</strong> achieves exceptional performance for aquatic environmental surveillance. Reaching <strong>{{ model_analytics.map_50 }} mAP@0.5</strong> at an inference speed of <strong>{{ model_analytics.latency }} ({{ model_analytics.fps }})</strong>, the framework satisfies both accuracy and real-time edge processing constraints.
+            The empirical results confirm that <strong>{{ model_analytics.model_name }}</strong> leveraging <strong>{{
+              model_analytics.architecture }}</strong> achieves exceptional performance for aquatic environmental
+            surveillance. Reaching <strong>{{ model_analytics.map_50 }} mAP@0.5</strong> at an inference speed of
+            <strong>{{ model_analytics.latency }} ({{ model_analytics.fps }})</strong>, the framework satisfies both
+            accuracy and real-time edge processing constraints.
           </p>
           <p class="paper-paragraph">
-            <strong>Architectural Insights:</strong> Comparative benchmark results demonstrate that modern deep vision models balance spatial feature extraction and global context effectively. Lightweight model footprints like <strong>{{ model_analytics.model_size }}</strong> enable onboard execution on edge hardware mounted on river gates or autonomous surface vessels without cloud latency dependencies.
+            <strong>Architectural Insights:</strong> Comparative benchmark results demonstrate that modern deep vision
+            models balance spatial feature extraction and global context effectively. Lightweight model footprints like
+            <strong>{{ model_analytics.model_size }}</strong> enable onboard execution on edge hardware mounted on river
+            gates or autonomous surface vessels without cloud latency dependencies.
           </p>
           <p class="paper-paragraph">
-            <strong>Environmental Resilience:</strong> The integration of Mosaic and MixUp augmentations proved crucial in mitigating specular reflections from solar glare and water surface turbulence, ensuring consistent multi-class detection across diverse weather conditions.
+            <strong>Environmental Resilience:</strong> The integration of Mosaic and MixUp augmentations proved crucial
+            in mitigating specular reflections from solar glare and water surface turbulence, ensuring consistent
+            multi-class detection across diverse weather conditions.
           </p>
         </section>
 
@@ -1223,13 +1603,21 @@
         <section id="sec-12" class="paper-section">
           <h2 class="section-heading">12. Real-World Applications & Field Deployment</h2>
           <p class="paper-paragraph">
-            The <strong>HydraClean</strong> platform is designed for direct integration into municipal smart city infrastructure and aquatic environmental protection systems:
+            The <strong>HydraClean</strong> platform is designed for direct integration into municipal smart city
+            infrastructure and aquatic environmental protection systems:
           </p>
-          <ul style="font-family: 'Merriweather', serif; font-size: 0.95rem; line-height: 1.85; color: var(--text-main); margin-left: 1.5rem;">
-            <li><strong>Smart Municipal River Gate Surveillance:</strong> Continuous automated monitoring at water treatment intakes, drainage sluices, and river barriers to trigger automated mechanical trash rakes when waste accumulation thresholds are crossed.</li>
-            <li><strong>Autonomous Surface Vessel (ASV) Trash Skimmers:</strong> Real-time onboard AI detection guiding autonomous garbage skimmer boats toward floating waste hotspots for automated retrieval.</li>
-            <li><strong>Coastal & Estuarine Drone (UAV) Patrols:</strong> Aerial video feed processing to map macro-plastic drift trajectories and identify high-density environmental pollution zones.</li>
-            <li><strong>Longitudinal Environmental Reporting:</strong> Automated export of Microsoft Word (.docx) and LaTeX (.tex) research manuscripts directly from live detection telemetry for regulatory compliance and ecological audits.</li>
+          <ul
+            style="font-family: 'Merriweather', serif; font-size: 0.95rem; line-height: 1.85; color: var(--text-main); margin-left: 1.5rem;">
+            <li><strong>Smart Municipal River Gate Surveillance:</strong> Continuous automated monitoring at water
+              treatment intakes, drainage sluices, and river barriers to trigger automated mechanical trash rakes when
+              waste accumulation thresholds are crossed.</li>
+            <li><strong>Autonomous Surface Vessel (ASV) Trash Skimmers:</strong> Real-time onboard AI detection guiding
+              autonomous garbage skimmer boats toward floating waste hotspots for automated retrieval.</li>
+            <li><strong>Coastal & Estuarine Drone (UAV) Patrols:</strong> Aerial video feed processing to map
+              macro-plastic drift trajectories and identify high-density environmental pollution zones.</li>
+            <li><strong>Longitudinal Environmental Reporting:</strong> Automated export of Microsoft Word (.docx) and
+              LaTeX (.tex) research manuscripts directly from live detection telemetry for regulatory compliance and
+              ecological audits.</li>
           </ul>
         </section>
 
@@ -1239,10 +1627,17 @@
           <p class="paper-paragraph">
             Future enhancements planned for the <strong>HydraClean</strong> research framework include:
           </p>
-          <ul style="font-family: 'Merriweather', serif; font-size: 0.95rem; line-height: 1.85; color: var(--text-main); margin-left: 1.5rem;">
-            <li><strong>3D Bounding Box & Volumetric Weight Estimation:</strong> Integrating monocular depth estimation neural networks to compute 3D spatial volumes and predict physical waste mass (kg) of floating debris clusters.</li>
-            <li><strong>Multi-Spectral & Infrared Sensor Integration:</strong> Fusing thermal and near-infrared camera channels to enable 24/7 nighttime surveillance and underwater micro-plastic detection under murky conditions.</li>
-            <li><strong>Federated Swarm Intelligence:</strong> Deploying decentralized edge updates across fleets of autonomous trash skimmer boats to continuously adapt detection models to newly encountered waste shapes without centralized data transmission.</li>
+          <ul
+            style="font-family: 'Merriweather', serif; font-size: 0.95rem; line-height: 1.85; color: var(--text-main); margin-left: 1.5rem;">
+            <li><strong>3D Bounding Box & Volumetric Weight Estimation:</strong> Integrating monocular depth estimation
+              neural networks to compute 3D spatial volumes and predict physical waste mass (kg) of floating debris
+              clusters.</li>
+            <li><strong>Multi-Spectral & Infrared Sensor Integration:</strong> Fusing thermal and near-infrared camera
+              channels to enable 24/7 nighttime surveillance and underwater micro-plastic detection under murky
+              conditions.</li>
+            <li><strong>Federated Swarm Intelligence:</strong> Deploying decentralized edge updates across fleets of
+              autonomous trash skimmer boats to continuously adapt detection models to newly encountered waste shapes
+              without centralized data transmission.</li>
           </ul>
         </section>
 
@@ -1250,24 +1645,42 @@
         <section id="sec-14" class="paper-section">
           <h2 class="section-heading">14. Conclusion</h2>
           <p class="paper-paragraph">
-            This paper introduced <strong>HydraClean</strong>, an intelligent real-time floating waste detection framework combining fine-tuned <strong>{{ model_analytics.model_name }} ({{ model_analytics.architecture }})</strong> with an interactive web analytics suite. Achieving <strong>{{ model_analytics.map_50 }} mAP@0.5</strong>, <strong>{{ model_analytics.map_50_95 }} mAP@0.5:0.95</strong>, and <strong>{{ model_analytics.f1_score }} F1-Score</strong> at an inference speed of <strong>{{ model_analytics.latency }} ({{ model_analytics.fps }})</strong>, the system bridges the gap between state-of-the-art computer vision models and practical environmental engineering deployment.
+            This paper introduced <strong>HydraClean</strong>, an intelligent real-time floating waste detection
+            framework combining fine-tuned <strong>{{ model_analytics.model_name }} ({{ model_analytics.architecture
+              }})</strong> with an interactive web analytics suite. Achieving <strong>{{ model_analytics.map_50 }}
+              mAP@0.5</strong>, <strong>{{ model_analytics.map_50_95 }} mAP@0.5:0.95</strong>, and <strong>{{
+              model_analytics.f1_score }} F1-Score</strong> at an inference speed of <strong>{{ model_analytics.latency
+              }} ({{ model_analytics.fps }})</strong>, the system bridges the gap between state-of-the-art computer
+            vision models and practical environmental engineering deployment.
           </p>
         </section>
 
         <!-- Section 15: References -->
         <section id="sec-15" class="paper-section">
           <h2 class="section-heading">15. References</h2>
-          <ol style="font-family: 'Merriweather', serif; font-size: 0.85rem; line-height: 1.8; color: var(--text-main); margin-left: 1.5rem;">
-            <li id="ref-1">Y. Zhao et al., "DETRs Beat YOLOs on Real-Time Object Detection," <em>arXiv preprint arXiv:2304.08069</em>, 2023.</li>
-            <li id="ref-2">N. Carion et al., "End-to-End Object Detection with Transformers," in <em>European Conference on Computer Vision (ECCV)</em>, 2020, pp. 213–229.</li>
-            <li id="ref-3">G. Jocher, A. Chaurasia, and J. Qiu, "Ultralytics YOLOv8," 2023. [Online]. Available: https://github.com/ultralytics/ultralytics</li>
-            <li id="ref-4">S. Ren, K. He, R. Girshick, and J. Sun, "Faster R-CNN: Towards Real-Time Object Detection with Region Proposal Networks," in <em>NeurIPS</em>, 2015.</li>
-            <li id="ref-5">M. Tan, R. Pang, and Q. V. Le, "EfficientDet: Scalable and Efficient Object Detection," in <em>CVPR</em>, 2020, pp. 10781–10790.</li>
-            <li id="ref-6">T.-Y. Lin et al., "Focal Loss for Dense Object Detection," in <em>IEEE ICCV</em>, 2017, pp. 2980–2988.</li>
-            <li id="ref-7">J. Redmon and A. Farhadi, "YOLOv3: An Incremental Improvement," <em>arXiv preprint arXiv:1804.02767</em>, 2018.</li>
-            <li id="ref-8">A. Bochkovskiy, C.-Y. Wang, and H.-Y. M. Liao, "YOLOv4: Optimal Speed and Accuracy of Object Detection," <em>arXiv preprint arXiv:2004.10934</em>, 2020.</li>
-            <li id="ref-9">UNEP, "From Pollution to Solution: A Global Assessment of Marine Litter and Plastic Pollution," <em>United Nations Environment Programme</em>, Nairobi, 2021.</li>
-            <li id="ref-10">WHO, "Microplastics in Drinking-Water," <em>World Health Organization</em>, Geneva, 2019.</li>
+          <ol
+            style="font-family: 'Merriweather', serif; font-size: 0.85rem; line-height: 1.8; color: var(--text-main); margin-left: 1.5rem;">
+            <li id="ref-1">Y. Zhao et al., "DETRs Beat YOLOs on Real-Time Object Detection," <em>arXiv preprint
+                arXiv:2304.08069</em>, 2023.</li>
+            <li id="ref-2">N. Carion et al., "End-to-End Object Detection with Transformers," in <em>European Conference
+                on Computer Vision (ECCV)</em>, 2020, pp. 213–229.</li>
+            <li id="ref-3">G. Jocher, A. Chaurasia, and J. Qiu, "Ultralytics YOLOv8," 2023. [Online]. Available:
+              https://github.com/ultralytics/ultralytics</li>
+            <li id="ref-4">S. Ren, K. He, R. Girshick, and J. Sun, "Faster R-CNN: Towards Real-Time Object Detection
+              with Region Proposal Networks," in <em>NeurIPS</em>, 2015.</li>
+            <li id="ref-5">M. Tan, R. Pang, and Q. V. Le, "EfficientDet: Scalable and Efficient Object Detection," in
+              <em>CVPR</em>, 2020, pp. 10781–10790.
+            </li>
+            <li id="ref-6">T.-Y. Lin et al., "Focal Loss for Dense Object Detection," in <em>IEEE ICCV</em>, 2017, pp.
+              2980–2988.</li>
+            <li id="ref-7">J. Redmon and A. Farhadi, "YOLOv3: An Incremental Improvement," <em>arXiv preprint
+                arXiv:1804.02767</em>, 2018.</li>
+            <li id="ref-8">A. Bochkovskiy, C.-Y. Wang, and H.-Y. M. Liao, "YOLOv4: Optimal Speed and Accuracy of Object
+              Detection," <em>arXiv preprint arXiv:2004.10934</em>, 2020.</li>
+            <li id="ref-9">UNEP, "From Pollution to Solution: A Global Assessment of Marine Litter and Plastic
+              Pollution," <em>United Nations Environment Programme</em>, Nairobi, 2021.</li>
+            <li id="ref-10">WHO, "Microplastics in Drinking-Water," <em>World Health Organization</em>, Geneva, 2019.
+            </li>
           </ol>
         </section>
       </div>
@@ -1286,7 +1699,7 @@
       // Model Selector Change Handler
       const selector = document.getElementById('paperModelSelector');
       if (selector) {
-        selector.addEventListener('change', function() {
+        selector.addEventListener('change', function () {
           const modelKey = this.value;
           localStorage.setItem('selectedModel', modelKey);
           window.location.href = `/research-paper?model=${encodeURIComponent(modelKey)}`;
@@ -1307,8 +1720,18 @@
       const toggleBtn = document.getElementById('toggleColumnBtn');
       const canvas = document.getElementById('paperMainCanvas');
       if (toggleBtn && canvas) {
-        toggleBtn.addEventListener('click', () => {
+        toggleBtn.addEventListener('click', (e) => {
+          e.preventDefault();
           canvas.classList.toggle('two-column-mode');
+          const isTwoCol = canvas.classList.contains('two-column-mode');
+          toggleBtn.classList.toggle('active', isTwoCol);
+          const span = toggleBtn.querySelector('span');
+          if (span) {
+            span.textContent = isTwoCol ? '1-Col View' : '2-Col View';
+          }
+          if (window.WastageDetection && window.WastageDetection.showNotification) {
+            window.WastageDetection.showNotification(isTwoCol ? 'Switched to 2-Column Academic View' : 'Switched to Single Column View', 'info');
+          }
         });
       }
 
@@ -1346,7 +1769,7 @@
           });
         });
       }
-      // Dynamic LocalStorage Gallery Rendering for Selected Model
+      // Dynamic LocalStorage Gallery Rendering for Selected Model ONLY
       function renderSelectedModelGallery() {
         const galleryGrid = document.getElementById('paperGalleryGrid');
         if (!galleryGrid) return;
@@ -1367,7 +1790,7 @@
           }
         }
 
-        // Filter detection items matching the selected model
+        // Strict filter: ONLY match detections generated by the currently selected model
         const matchedDetections = history.filter(item => {
           if (!item) return false;
           let mKey = '';
@@ -1376,131 +1799,276 @@
             mKey = metrics ? (metrics.model_id || '') : '';
           }
           const rawId = (item.model_id || item.model_name || '').toLowerCase();
-          return mKey === currentModelId ||
-                 rawId.includes(currentModelId) ||
-                 (currentModelId === 'rt_detr' && (rawId.includes('detr') || rawId.includes('best_pt'))) ||
-                 (currentModelId === 'v2' && (rawId.includes('v2') || rawId.includes('yolov8'))) ||
-                 (currentModelId === 'taco_fasterrcnn' && (rawId.includes('taco') || rawId.includes('fasterrcnn') || rawId.includes('30epochs'))) ||
-                 (currentModelId === 'mixed' && (rawId.includes('mixed') || rawId.includes('ensemble')));
+
+          if (currentModelId === 'rt_detr') {
+            return mKey === 'rt_detr' || rawId.includes('detr') || rawId.includes('rtdetr') || rawId === 'best_pt';
+          } else if (currentModelId === 'v2') {
+            return mKey === 'v2' || (rawId.includes('v2') && !rawId.includes('detr')) || (rawId.includes('yolov8') && !rawId.includes('detr')) || rawId === 'v2_best_pt';
+          } else if (currentModelId === 'taco_fasterrcnn') {
+            return mKey === 'taco_fasterrcnn' || rawId.includes('taco') || rawId.includes('fasterrcnn') || rawId.includes('30epochs');
+          } else if (currentModelId === 'mixed') {
+            return mKey === 'mixed' || rawId.includes('mixed') || rawId.includes('ensemble');
+          }
+          return mKey === currentModelId || rawId.includes(currentModelId);
         });
 
-        // Use matched items if available; otherwise use recent history items
-        const itemsToDisplay = matchedDetections.length > 0 ? matchedDetections.slice(0, 4) : history.slice(0, 4);
+        // Default model-specific gallery cards (used when no user history exists for this model)
+        const defaultCards = [
+          {
+            imgSrc: `/static/results/sample_${currentModelId}_detection.jpg`,
+            fallback: `/static/results/gallery_${currentModelId}_1.jpg`,
+            title: `${modelName} Multi-Class Detection`,
+            subtitle: `${map50} mAP@0.5 · {{ model_analytics.total_classes }}`
+          },
+          {
+            imgSrc: `/static/results/gallery_${currentModelId}_1.jpg`,
+            fallback: `/static/results/gallery_${currentModelId}_2.jpg`,
+            title: `High-Density Debris Clutter (${modelName})`,
+            subtitle: `Vegetation & Plastic Clusters`
+          },
+          {
+            imgSrc: `/static/results/gallery_${currentModelId}_2.jpg`,
+            fallback: `/static/results/gallery_${currentModelId}_3.jpg`,
+            title: `Plastic Bottle Localization (${modelName})`,
+            subtitle: `Submerged Debris Detection`
+          },
+          {
+            imgSrc: `/static/results/gallery_${currentModelId}_3.jpg`,
+            fallback: `/static/results/gallery_${currentModelId}_4.jpg`,
+            title: `Urban River Gate Surveillance (${modelName})`,
+            subtitle: `Real-time Stream Feed`
+          }
+        ];
 
-        if (itemsToDisplay && itemsToDisplay.length > 0) {
-          galleryGrid.innerHTML = itemsToDisplay.map((entry, idx) => {
-            const imgSrc = entry.result || entry.original || '/static/results/sample_rt_detr_detection.jpg';
-            const totalObjs = entry.total !== undefined ? entry.total : (entry.detections ? entry.detections.length : 0);
-            
-            let confBadge = `${map50} mAP@0.5`;
-            if (entry.detections && entry.detections.length > 0) {
-              const confs = entry.detections.map(d => d.confidence <= 1 ? d.confidence * 100 : d.confidence);
-              const avgConf = confs.reduce((a, b) => a + b, 0) / confs.length;
-              confBadge = `${avgConf.toFixed(1)}% Avg Conf · ${totalObjs} Detected`;
-            }
+        // Build list of 4 cards ONLY for the selected model
+        const displayCards = [];
 
-            const title = entry.model_name || `${modelName} Result`;
-            const labelStr = entry.date ? `${entry.date}` : `Aquatic Environmental Scan #${idx + 1}`;
+        // Add user detections matching the selected model (up to 4)
+        matchedDetections.slice(0, 4).forEach(entry => {
+          const imgSrc = entry.result || entry.original || `/static/results/sample_${currentModelId}_detection.jpg`;
+          const totalObjs = entry.total !== undefined ? entry.total : (entry.detections ? entry.detections.length : 0);
 
-            return `
-              <div class="gallery-card">
-                <img src="${imgSrc}" alt="${title}" onerror="this.onerror=null; this.src='/static/results/sample_rt_detr_detection.jpg';">
-                <div class="gallery-card-info">
-                  <div style="font-weight: 800; font-size: 0.88rem; color: var(--heading-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${title} (${totalObjs} Objects)</div>
-                  <div style="font-size: 0.78rem; color: var(--paper-accent); font-weight: 700; margin-top: 0.2rem;">${confBadge}</div>
-                </div>
-              </div>
-            `;
-          }).join('');
+          let confBadge = `${map50} mAP@0.5`;
+          if (entry.detections && entry.detections.length > 0) {
+            const confs = entry.detections.map(d => d.confidence <= 1 ? d.confidence * 100 : d.confidence);
+            const avgConf = confs.reduce((a, b) => a + b, 0) / confs.length;
+            confBadge = `${avgConf.toFixed(1)}% Avg Conf · ${totalObjs} Detected`;
+          }
+
+          const title = entry.model_name ? `${entry.model_name} Scan (${totalObjs} Objects)` : `${modelName} Result (${totalObjs} Objects)`;
+          displayCards.push({
+            imgSrc: imgSrc,
+            fallback: `/static/results/sample_${currentModelId}_detection.jpg`,
+            title: title,
+            subtitle: confBadge
+          });
+        });
+
+        // Fill remaining slots up to 4 with the default model-specific gallery cards
+        while (displayCards.length < 4) {
+          const fillIdx = displayCards.length;
+          displayCards.push(defaultCards[fillIdx]);
+        }
+
+        galleryGrid.innerHTML = displayCards.map(card => `
+          <div class="gallery-card">
+            <img src="${card.imgSrc}" alt="${card.title}" onerror="this.onerror=null; this.src='${card.fallback}';">
+            <div class="gallery-card-info">
+              <div style="font-weight: 800; font-size: 0.88rem; color: var(--heading-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${card.title}</div>
+              <div style="font-size: 0.78rem; color: var(--paper-accent); font-weight: 700; margin-top: 0.2rem;">${card.subtitle}</div>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      // Chart.js Instances for Section 9
+      let paperCatChartInstance = null;
+      let paperConfChartInstance = null;
+
+      function renderSection9Charts() {
+        const catCtx = document.getElementById('paperCategoryChart');
+        const confCtx = document.getElementById('paperConfidenceChart');
+        if (!catCtx || !confCtx) return;
+
+        const currentModelId = '{{ selected_model_id }}';
+        const modelName = '{{ model_analytics.model_name }}';
+        const defaultDatasetSize = '{{ model_analytics.val_dataset_size }}';
+        const defaultAvgPrecision = '{{ model_analytics.precision }}';
+
+        let history = [];
+        if (window.StorageEngine && typeof window.StorageEngine.getDetectionHistory === 'function') {
+          history = window.StorageEngine.getDetectionHistory();
+        } else {
+          try {
+            const raw = localStorage.getItem('wasteDetectHistory');
+            if (raw) history = JSON.parse(raw);
+          } catch (e) {
+            console.error('Error reading wasteDetectHistory from localStorage:', e);
+          }
+        }
+
+        // Strict filter for selected model
+        const matchedDetections = history.filter(item => {
+          if (!item) return false;
+          let mKey = '';
+          if (window.StorageEngine && typeof window.StorageEngine.getModelEvalMetrics === 'function') {
+            const metrics = window.StorageEngine.getModelEvalMetrics(item);
+            mKey = metrics ? (metrics.model_id || '') : '';
+          }
+          const rawId = (item.model_id || item.model_name || '').toLowerCase();
+
+          if (currentModelId === 'rt_detr') {
+            return mKey === 'rt_detr' || rawId.includes('detr') || rawId.includes('rtdetr') || rawId === 'best_pt';
+          } else if (currentModelId === 'v2') {
+            return mKey === 'v2' || (rawId.includes('v2') && !rawId.includes('detr')) || (rawId.includes('yolov8') && !rawId.includes('detr')) || rawId === 'v2_best_pt';
+          } else if (currentModelId === 'taco_fasterrcnn') {
+            return mKey === 'taco_fasterrcnn' || rawId.includes('taco') || rawId.includes('fasterrcnn') || rawId.includes('30epochs');
+          } else if (currentModelId === 'mixed') {
+            return mKey === 'mixed' || rawId.includes('mixed') || rawId.includes('ensemble');
+          }
+          return mKey === currentModelId || rawId.includes(currentModelId);
+        });
+
+        let catLabels = [];
+        let catValues = [];
+        let confLabels = ['< 70%', '70–80%', '80–90%', '90–95%', '95–100%'];
+        let confValues = [0, 0, 0, 0, 0];
+        let totalDetectionsCount = 0;
+        let avgConfCalc = null;
+
+        const hasLocalStorageData = matchedDetections.some(item => item.detections && item.detections.length > 0);
+
+        if (hasLocalStorageData) {
+          const categoryCounts = {};
+          const confBins = { '< 70%': 0, '70–80%': 0, '80–90%': 0, '90–95%': 0, '95–100%': 0 };
+          let totalConfSum = 0;
+
+          matchedDetections.forEach(entry => {
+            (entry.detections || []).forEach(d => {
+              totalDetectionsCount++;
+              let lbl = (d.label || 'Other Waste').trim();
+              lbl = lbl.split(/[-_]/).map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+              categoryCounts[lbl] = (categoryCounts[lbl] || 0) + 1;
+
+              const rawConf = d.confidence || 0;
+              const confPct = rawConf <= 1 ? rawConf * 100 : rawConf;
+              totalConfSum += confPct;
+
+              if (confPct < 70) confBins['< 70%']++;
+              else if (confPct < 80) confBins['70–80%']++;
+              else if (confPct < 90) confBins['80–90%']++;
+              else if (confPct < 95) confBins['90–95%']++;
+              else confBins['95–100%']++;
+            });
+          });
+
+          catLabels = Object.keys(categoryCounts);
+          catValues = Object.values(categoryCounts);
+          confLabels = Object.keys(confBins);
+          confValues = Object.values(confBins);
+          if (totalDetectionsCount > 0) {
+            avgConfCalc = (totalConfSum / totalDetectionsCount).toFixed(1) + '%';
+          }
+        } else {
+          {% if model_analytics and model_analytics.class_freq_histogram %}
+          catLabels = {{ model_analytics.class_freq_histogram.labels | tojson }};
+          catValues = {{ model_analytics.class_freq_histogram.data | tojson }};
+          {% else %}
+          catLabels = ['Water Hyacinth', 'Plastic Bottle', 'Plastic Bag', 'Wood & Debris', 'Other Waste', 'Metal Can'];
+          catValues = [2100, 1840, 1620, 1120, 980, 850];
+          {% endif %}
+
+          {% if model_analytics and model_analytics.confidence_histogram %}
+          confLabels = {{ model_analytics.confidence_histogram.labels | tojson }};
+          confValues = {{ model_analytics.confidence_histogram.data | tojson }};
+          {% else %}
+          confLabels = ['< 70%', '70–80%', '80–90%', '90–95%', '95–100%'];
+          confValues = [20, 65, 210, 580, 845];
+          {% endif %}
+        }
+
+    const catBadge = document.getElementById('paperCatBadge');
+    if (catBadge) {
+      catBadge.textContent = hasLocalStorageData ? `${totalDetectionsCount} Telemetry Objects` : defaultDatasetSize;
+    }
+    const confBadge = document.getElementById('paperConfBadge');
+    if (confBadge) {
+      confBadge.textContent = avgConfCalc ? `Avg ${avgConfCalc} Conf` : `Avg ${defaultAvgPrecision} Conf`;
+    }
+
+    if (paperCatChartInstance) paperCatChartInstance.destroy();
+    if (paperConfChartInstance) paperConfChartInstance.destroy();
+
+    // Render Category Frequency Chart
+    paperCatChartInstance = new Chart(catCtx, {
+      type: 'bar',
+      data: {
+        labels: catLabels,
+        datasets: [{
+          label: 'Detection Instances',
+          data: catValues,
+          backgroundColor: [
+            'rgba(0, 217, 142, 0.75)',
+            'rgba(0, 217, 255, 0.75)',
+            'rgba(167, 139, 250, 0.75)',
+            'rgba(255, 183, 0, 0.75)',
+            'rgba(244, 63, 94, 0.75)',
+            'rgba(56, 189, 248, 0.75)',
+            'rgba(168, 85, 247, 0.75)',
+            'rgba(236, 72, 153, 0.75)'
+          ],
+          borderColor: [
+            '#00D98E', '#00D9FF', '#A78BFA', '#FFB700', '#F43F5E', '#38BDF8', '#A855F7', '#EC4899'
+          ],
+          borderWidth: 1.5,
+          borderRadius: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 10, weight: '600' } } },
+          y: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#94a3b8' } }
         }
       }
+    });
 
+    // Render Confidence Distribution Chart
+    paperConfChartInstance = new Chart(confCtx, {
+      type: 'doughnut',
+      data: {
+        labels: confLabels,
+        datasets: [{
+          data: confValues,
+          backgroundColor: [
+            '#F43F5E',
+            '#FFB700',
+            '#38BDF8',
+            '#00D9FF',
+            '#00D98E'
+          ],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 11, weight: '600' } } }
+        },
+        cutout: '70%'
+      }
+    });
+      }
+
+    renderSection9Charts();
+
+    window.addEventListener('wasteDetectHistoryUpdated', () => {
       renderSelectedModelGallery();
-      window.addEventListener('wasteDetectHistoryUpdated', renderSelectedModelGallery);
-
-      // Data injection for Chart.js
-      {% if model_analytics.class_freq_histogram %}
-        const catLabels = {{ model_analytics.class_freq_histogram.labels | tojson }};
-        const catValues = {{ model_analytics.class_freq_histogram.data | tojson }};
-      {% else %}
-        const catLabels = ['Water Hyacinth', 'Plastic Bottle', 'Plastic Bag', 'Wood & Debris', 'Other Waste', 'Metal Can'];
-        const catValues = [2100, 1840, 1620, 1120, 980, 850];
-      {% endif %}
-
-      {% if model_analytics.confidence_histogram %}
-        const confLabels = {{ model_analytics.confidence_histogram.labels | tojson }};
-        const confValues = {{ model_analytics.confidence_histogram.data | tojson }};
-      {% else %}
-        const confLabels = ['High (>90%)', 'Medium (70-90%)', 'Low (<70%)'];
-        const confValues = [72, 22, 6];
-      {% endif %}
-
-      // Render Category Frequency Chart
-      const catCtx = document.getElementById('paperCategoryChart');
-      if (catCtx) {
-        new Chart(catCtx, {
-          type: 'bar',
-          data: {
-            labels: catLabels,
-            datasets: [{
-              label: 'Detection Instances',
-              data: catValues,
-              backgroundColor: [
-                'rgba(0, 217, 142, 0.75)',
-                'rgba(0, 217, 255, 0.75)',
-                'rgba(167, 139, 250, 0.75)',
-                'rgba(255, 183, 0, 0.75)',
-                'rgba(244, 63, 94, 0.75)',
-                'rgba(56, 189, 248, 0.75)'
-              ],
-              borderColor: [
-                '#00D98E', '#00D9FF', '#A78BFA', '#FFB700', '#F43F5E', '#38BDF8'
-              ],
-              borderWidth: 1.5,
-              borderRadius: 6
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: { display: false }
-            },
-            scales: {
-              x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 10, weight: '600' } } },
-              y: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#94a3b8' } }
-            }
-          }
-        });
-      }
-
-      // Render Confidence Distribution Chart
-      const confCtx = document.getElementById('paperConfidenceChart');
-      if (confCtx) {
-        new Chart(confCtx, {
-          type: 'doughnut',
-          data: {
-            labels: confLabels,
-            datasets: [{
-              data: confValues,
-              backgroundColor: [
-                '#00D98E',
-                '#00D9FF',
-                '#FFB700'
-              ],
-              borderWidth: 0
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 11, weight: '600' } } }
-            },
-            cutout: '70%'
-          }
-        });
-      }
+      renderSection9Charts();
+    });
     });
   </script>
 </body>

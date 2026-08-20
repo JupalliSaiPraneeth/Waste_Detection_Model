@@ -26,7 +26,7 @@
       <div class="nav-left">
         <div class="brand">
           <img class="brand-logo" src="{{ url_for('static', filename='images/wastelogo.png') }}" alt="AquaVision Logo"
-            style="height: 44px; width: auto; object-fit: contain; filter: drop-shadow(0 0 8px rgba(0, 217, 255, 0.4));" />
+            style="height: 34px; width: auto; object-fit: contain; filter: drop-shadow(0 0 6px rgba(0, 217, 255, 0.4));" />
           <div class="brand-text">
             <div class="brand-title">AquaVision</div>
             <div class="brand-sub">AI Waste Detection</div>
@@ -43,15 +43,11 @@
       </div>
       <div class="nav-right">
         <button class="theme-toggle-btn" id="themeToggle" aria-label="Toggle theme" title="Toggle Theme">
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="vertical-align:middle; display:inline-block;"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
-          <span style="font-weight:700;">Dark Mode</span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
         </button>
-        <button class="icon-btn" id="notifBtn" aria-label="Notifications"><svg xmlns="http://www.w3.org/2000/svg"
-            width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round"
-              d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-          </svg></button>
-
+        <button class="mobile-menu-toggle" id="mobileMenuBtn" aria-label="Toggle Navigation">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" /></svg>
+        </button>
       </div>
     </div>
   </nav>
@@ -65,78 +61,51 @@
       <div class="hero-overlay"></div>
 
       <div class="hero-inner">
-        <div class="hero-badge"
-          style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.4rem 1.1rem; background: rgba(0, 217, 255, 0.12); border: 1px solid rgba(0, 217, 255, 0.3); border-radius: 50px; color: #00D9FF; font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1.5rem; backdrop-filter: blur(12px); box-shadow: 0 0 20px rgba(0, 217, 255, 0.2);">
-          <span
-            style="width: 8px; height: 8px; background: #00D9FF; border-radius: 50%; display: inline-block; box-shadow: 0 0 10px #00D9FF;"></span>
+        <div class="hero-badge">
+          <span style="width: 8px; height: 8px; background: #00D9FF; border-radius: 50%; display: inline-block; box-shadow: 0 0 10px #00D9FF;"></span>
           Next-Gen AI Waterway Intelligence
         </div>
 
-        <h1
-          style="font-size: 3.8rem; font-weight: 900; color: #ffffff; margin-bottom: 1.2rem; letter-spacing: -1.8px; line-height: 1.15; text-shadow: 0 4px 20px rgba(0,0,0,0.5);">
-          Detect Aquatic Waste with <span
-            style="background: linear-gradient(135deg, #00D9FF 0%, #00D98E 50%, #FFB700 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; filter: drop-shadow(0 0 25px rgba(0, 217, 255, 0.4));">Model
-            Precision</span>
+        <h1 class="hero-title">
+          Detect Aquatic Waste with <span class="gradient-text">Model Precision</span>
         </h1>
 
-        <p
-          style="font-size: 1.25rem; color: rgba(248, 250, 252, 0.9); max-width: 680px; margin: 0 auto 2.2rem; line-height: 1.65; font-weight: 400; text-shadow: 0 2px 10px rgba(0,0,0,0.6);">
-          Real-time detection and analysis of water hyacinths, debris, and floating plastic waste for environmental
-          protection and automated cleanup prioritization.
+        <p class="hero-subtitle">
+          Real-time detection and analysis of water hyacinths, debris, and floating plastic waste for environmental protection and automated cleanup prioritization.
         </p>
 
-        <div style="display: flex; gap: 1.2rem; justify-content: center; flex-wrap: wrap; margin-bottom: 2.5rem;">
-          <a href="#features" class="btn btn-primary"
-            style="padding: 0.85rem 2rem; font-size: 1rem; font-weight: 800; border-radius: 12px; box-shadow: 0 10px 30px rgba(0, 217, 255, 0.4);">
-            <svg style="display: inline-block; vertical-align: middle; margin-right: 6px;" width="20" height="20"
-              fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+        <div class="hero-cta-group">
+          <a href="#features" class="btn btn-primary hero-btn">
+            <svg style="display: inline-block; vertical-align: middle; margin-right: 6px;" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg> Analyze Image Now
           </a>
-          <a href="/live" class="btn btn-ghost"
-            style="padding: 0.85rem 2rem; font-size: 1rem; font-weight: 800; border-radius: 12px; backdrop-filter: blur(10px); border-color: rgba(255,255,255,0.25);">
-            <svg style="display: inline-block; vertical-align: middle; margin-right: 6px;" width="20" height="20"
-              fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round"
-                d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+          <a href="/live" class="btn btn-ghost hero-btn">
+            <svg style="display: inline-block; vertical-align: middle; margin-right: 6px;" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
             </svg> Live Feed Detection
           </a>
         </div>
 
         <!-- Hero Feature Badges Row -->
-        <div
-          style="display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; max-width: 800px; margin: 0 auto; padding-top: 1.5rem; border-top: 1px solid rgba(255, 255, 255, 0.15);">
-          <div
-            style="display: flex; align-items: center; gap: 0.6rem; color: rgba(248, 250, 252, 0.95); font-size: 0.9rem; font-weight: 700;">
-            <div
-              style="width: 32px; height: 32px; border-radius: 8px; background: rgba(0, 217, 255, 0.15); display: flex; align-items: center; justify-content: center; border: 1px solid rgba(0, 217, 255, 0.3);">
-              <svg width="18" height="18" fill="none" stroke="#00D9FF" stroke-width="2.5" viewBox="0 0 24 24">
-                <path d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
+        <div class="hero-features-row">
+          <div class="hero-feature-badge">
+            <div class="hero-feature-icon" style="background: rgba(0, 217, 255, 0.15); border-color: rgba(0, 217, 255, 0.3);">
+              <svg width="16" height="16" fill="none" stroke="#00D9FF" stroke-width="2.5" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
             </div>
-            YOLOv8 AI Engine
+            <span>YOLOv8 AI Engine</span>
           </div>
-          <div
-            style="display: flex; align-items: center; gap: 0.6rem; color: rgba(248, 250, 252, 0.95); font-size: 0.9rem; font-weight: 700;">
-            <div
-              style="width: 32px; height: 32px; border-radius: 8px; background: rgba(0, 217, 142, 0.15); display: flex; align-items: center; justify-content: center; border: 1px solid rgba(0, 217, 142, 0.3);">
-              <svg width="18" height="18" fill="none" stroke="#00D98E" stroke-width="2.5" viewBox="0 0 24 24">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                <circle cx="12" cy="12" r="3" />
-              </svg>
+          <div class="hero-feature-badge">
+            <div class="hero-feature-icon" style="background: rgba(0, 217, 142, 0.15); border-color: rgba(0, 217, 142, 0.3);">
+              <svg width="16" height="16" fill="none" stroke="#00D98E" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /><circle cx="12" cy="12" r="3" /></svg>
             </div>
-            97.4% High Accuracy
+            <span>97.4% Accuracy</span>
           </div>
-          <div
-            style="display: flex; align-items: center; gap: 0.6rem; color: rgba(248, 250, 252, 0.95); font-size: 0.9rem; font-weight: 700;">
-            <div
-              style="width: 32px; height: 32px; border-radius: 8px; background: rgba(255, 183, 0, 0.15); display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255, 183, 0, 0.3);">
-              <svg width="18" height="18" fill="none" stroke="#FFB700" stroke-width="2.5" viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="10" />
-                <path d="M12 6v6l4 2" />
-              </svg>
+          <div class="hero-feature-badge">
+            <div class="hero-feature-icon" style="background: rgba(255, 183, 0, 0.15); border-color: rgba(255, 183, 0, 0.3);">
+              <svg width="16" height="16" fill="none" stroke="#FFB700" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></svg>
             </div>
-            Real-Time Overhead Vision
+            <span>Real-Time Overhead Vision</span>
           </div>
         </div>
       </div>
@@ -184,16 +153,42 @@
 
         <div class="action-row">
           <div class="model-select-wrapper">
-            <label for="modelSelect" class="small-label">Detection Model</label>
+            <label for="modelSelect" class="small-label">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2a10 10 0 0110 10c0 5.523-4.477 10-10 10S2 17.523 2 12A10 10 0 0112 2z"/></svg> Detection Model
+            </label>
             <select id="modelSelect" name="model" class="select-field">
               {% for model in model_choices %}
-              <option value="{{ model.id }}">{{ model.name }}</option>
+              <option value="{{ model.id }}" {% if model.id == 'mixed' %}selected{% endif %}>{{ model.name }}</option>
               {% endfor %}
               {% if not model_choices %}
               <option value="v1">RT-DETR (Default)</option>
               {% endif %}
             </select>
           </div>
+
+          <div class="model-select-wrapper">
+            <label for="scanModeSelect" class="small-label">
+              Scan Pipeline & Engine Mode
+            </label>
+            <select id="scanModeSelect" name="scan_mode" class="select-field">
+              <option value="floating_engine" selected>Advanced Floating Waste Engine (Water Surface Aware)</option>
+              <option value="dense">Deep Dense Scan (SAHI Sliced Multi-Scale)</option>
+              <option value="standard">Fast Standard Scan (Single Pass)</option>
+            </select>
+          </div>
+
+          <div class="model-select-wrapper">
+            <label for="confSelect" class="small-label">
+              Sensitivity Threshold
+            </label>
+            <select id="confSelect" name="conf" class="select-field">
+              <option value="0.10">Ultra-Sensitive (Dense Clutter: 10%)</option>
+              <option value="0.15" selected>Balanced High-Recall (15% - Recommended)</option>
+              <option value="0.25">Standard Balanced (25%)</option>
+              <option value="0.35">Strict High-Precision (35%)</option>
+            </select>
+          </div>
+
           <div class="button-group">
             <button type="button" class="btn btn-ghost" id="changeImageBtn" style="display:none;">
               <svg style="display: inline-block; vertical-align: middle;" width="18" height="18" fill="none"
@@ -202,20 +197,25 @@
                   d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg> Clear
             </button>
-            <button type="submit" class="btn btn-primary" id="submitBtn" disabled>
-              <span class="btn-text"><svg style="display: inline-block; vertical-align: middle;" width="18" height="18"
+            <button type="submit" class="btn btn-primary main-submit-btn" id="submitBtn" disabled>
+              <span class="btn-text"><svg style="display: inline-block; vertical-align: middle; margin-right: 4px;" width="18" height="18"
                   fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round"
                     d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg> Analyze Image</span>
               <span class="btn-loading" style="display:none;"><svg
-                  style="display: inline-block; vertical-align: middle;" width="18" height="18" fill="none"
+                  style="display: inline-block; vertical-align: middle; margin-right: 4px;" width="18" height="18" fill="none"
                   stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round"
                     d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg> Processing...</span>
             </button>
           </div>
+        </div>
+
+        <!-- Info Tip Box -->
+        <div class="info-tip-box">
+          <span><strong>Advanced Floating Waste Engine:</strong> Performs water-surface segmentation to detect any floating item on the water body (known or unknown), while filtering out environmental noise like ripples, sun glare, waves, and shoreline background!</span>
         </div>
 
         <input type="file" id="fileInput" name="image" accept=".png,.jpg,.jpeg,.webp" style="display:none;" />

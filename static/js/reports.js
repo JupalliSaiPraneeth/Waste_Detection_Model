@@ -167,7 +167,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // 1. Trigger File Download based on type
       if (type === 'research_paper') {
-        window.location.href = '/research-paper';
+        window.location.href = '/api/export-research-paper?format=docx';
+        if (window.WastageDetection && window.WastageDetection.showNotification) {
+          window.WastageDetection.showNotification('Research Paper (.docx) Download Started!', 'success');
+        }
         return;
       } else if (type === 'csv') {
         if (window.StorageEngine && typeof window.StorageEngine.exportHistoryAsCSV === 'function') {

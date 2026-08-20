@@ -39,6 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupFormHandlers();
   setupHistoryHandlers();
   setupThemeToggle();
+  setupMobileMenu();
   loadStats();
   renderHistory();
 });
@@ -75,8 +76,8 @@ function updateThemeButton(isDark) {
   buttons.forEach(button => {
     button.className = 'theme-toggle-btn';
     button.innerHTML = isDark 
-      ? '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="vertical-align:middle; display:inline-block;"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg> <span style="font-weight:700;">Dark Mode</span>'
-      : '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="vertical-align:middle; display:inline-block;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg> <span style="font-weight:700;">Light Mode</span>';
+      ? '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>'
+      : '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>';
     button.setAttribute('aria-pressed', isDark ? 'true' : 'false');
     button.setAttribute('title', isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode');
   });
@@ -89,6 +90,84 @@ function setupThemeToggle() {
       toggleTheme();
     }
   });
+}
+
+function setupMobileMenu() {
+  const navLinks = document.querySelector('.nav-links');
+
+  function openMenu(btn) {
+    if (!navLinks) return;
+    navLinks.classList.add('open', 'active');
+    if (btn) btn.classList.add('is-active');
+
+    if (typeof gsap !== 'undefined') {
+      gsap.killTweensOf(navLinks);
+      const links = navLinks.querySelectorAll('a');
+      gsap.killTweensOf(links);
+
+      gsap.fromTo(navLinks,
+        { y: -18, opacity: 0, scaleY: 0.94 },
+        { y: 0, opacity: 1, scaleY: 1, duration: 0.38, ease: 'power3.out', transformOrigin: 'top center' }
+      );
+
+      gsap.fromTo(links,
+        { y: 12, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.28, stagger: 0.05, ease: 'power2.out', delay: 0.06 }
+      );
+
+      if (btn) {
+        gsap.fromTo(btn, { scale: 0.9 }, { scale: 1, duration: 0.3, ease: 'back.out(1.7)' });
+      }
+    }
+  }
+
+  function closeMenu(btn) {
+    if (!navLinks || !navLinks.classList.contains('open')) return;
+    const menuBtn = btn || document.querySelector('#mobileMenuBtn, .mobile-menu-toggle');
+
+    if (typeof gsap !== 'undefined') {
+      gsap.killTweensOf(navLinks);
+      gsap.to(navLinks, {
+        y: -14,
+        opacity: 0,
+        scaleY: 0.96,
+        duration: 0.24,
+        ease: 'power2.in',
+        transformOrigin: 'top center',
+        onComplete: () => {
+          navLinks.classList.remove('open', 'active');
+          if (menuBtn) menuBtn.classList.remove('is-active');
+          gsap.set(navLinks, { clearProps: 'all' });
+        }
+      });
+    } else {
+      navLinks.classList.remove('open', 'active');
+      if (menuBtn) menuBtn.classList.remove('is-active');
+    }
+  }
+
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('#mobileMenuBtn, .mobile-menu-toggle');
+
+    if (btn && navLinks) {
+      e.stopPropagation();
+      if (navLinks.classList.contains('open')) {
+        closeMenu(btn);
+      } else {
+        openMenu(btn);
+      }
+    } else if (navLinks && navLinks.classList.contains('open') && !e.target.closest('.nav-links')) {
+      closeMenu();
+    }
+  });
+
+  if (navLinks) {
+    navLinks.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => {
+        closeMenu();
+      });
+    });
+  }
 }
 
 // ============================================================
@@ -149,13 +228,13 @@ function handleFileSelect(file) {
   // Validate file type
   const validTypes = ['image/png', 'image/jpeg', 'image/webp'];
   if (!validTypes.includes(file.type)) {
-    showNotification('❌ Please select a PNG, JPG, or WebP image', 'error');
+    showNotification('Please select a PNG, JPG, or WebP image', 'error');
     return;
   }
 
   // Validate file size (16MB max)
   if (file.size > 16 * 1024 * 1024) {
-    showNotification('❌ File size exceeds 16MB limit', 'error');
+    showNotification('File size exceeds 16MB limit', 'error');
     return;
   }
 
@@ -171,7 +250,7 @@ function handleFileSelect(file) {
     if (changeImageBtn) changeImageBtn.style.display = 'inline-flex';
     if (submitBtn) submitBtn.disabled = false;
     
-    showNotification('✅ Image loaded successfully', 'success');
+    showNotification('Image loaded successfully', 'success');
   };
   reader.readAsDataURL(file);
 }
@@ -184,7 +263,7 @@ function clearImagePreview() {
   if (changeImageBtn) changeImageBtn.style.display = 'none';
   if (submitBtn) submitBtn.disabled = true;
   
-  showNotification('🗑️ Image cleared', 'info');
+  showNotification('Image cleared', 'info');
 }
 
 // ============================================================
@@ -198,7 +277,7 @@ function setupFormHandlers() {
   if (modelSelect) {
     modelSelect.addEventListener('change', () => {
       const selectedModel = modelSelect.options[modelSelect.selectedIndex].text;
-      showNotification(`🤖 Model changed to: ${selectedModel}`, 'info');
+      showNotification(`Model changed to: ${selectedModel}`, 'info');
     });
   }
 
@@ -299,29 +378,28 @@ function renderHistory() {
 
     historyList.innerHTML = history.map((entry, idx) => {
       const imgSrc = entry.result || entry.original || '/static/images/wastelogo.png';
+      const rawModel = entry.model_name || 'YOLOv8';
+      let displayModel = rawModel;
+      if (rawModel.toLowerCase().includes('mixed') || rawModel.toLowerCase().includes('ensemble')) {
+        displayModel = 'MIXED ENSEMBLE';
+      }
+
       return `
-        <div onclick="openDetectionModal(${idx})" class="history-item-card" style="
-          padding: 1rem;
-          background: rgba(0, 217, 255, 0.05);
-          border: 1px solid rgba(0, 217, 255, 0.2);
-          border-radius: 0.75rem;
-          margin-bottom: 0.75rem;
-          cursor: pointer;
-          transition: all 0.3s;
-        ">
-          <div style="display: flex; gap: 1rem; align-items: center;">
-            <img src="${imgSrc}" alt="History" style="width: 60px; height: 60px; border-radius: 0.5rem; object-fit: cover;" onerror="this.src='/static/images/wastelogo.png'">
-            <div style="flex: 1; min-width: 0;">
-              <div style="font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
-                ${entry.total || 0} object${entry.total !== 1 ? 's' : ''} detected
-                <span class="badge" style="font-size: 0.7rem; padding: 0.15rem 0.45rem; background: rgba(0, 217, 255, 0.1); color: var(--primary); border: 1px solid rgba(0,217,255,0.2); font-weight: 800;">${entry.model_name || 'YOLOv8'}</span>
+        <div onclick="openDetectionModal(${idx})" class="history-item-card">
+          <div class="history-card-inner">
+            <img src="${imgSrc}" alt="History" class="history-thumb" onerror="this.src='/static/images/wastelogo.png'">
+            <div class="history-card-content">
+              <div class="history-card-header">
+                <span class="history-count-title">${entry.total || 0} object${entry.total !== 1 ? 's' : ''} detected</span>
+                <span class="history-model-badge" title="${rawModel}">${displayModel}</span>
               </div>
-              <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;">
-                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:inline-block; vertical-align:middle; margin-right:4px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>${entry.date || 'Recent scan'}
+              <div class="history-card-date">
+                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                <span>${entry.date || 'Recent scan'}</span>
               </div>
             </div>
-            <button onclick="event.stopPropagation(); downloadHistoryItem(${idx})" class="btn btn-small btn-ghost" style="margin: 0;" title="Download image">
-              <svg style="display: inline-block; vertical-align: middle;" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            <button onclick="event.stopPropagation(); downloadHistoryItem(${idx})" class="history-download-btn" title="Download image">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
             </button>
           </div>
         </div>
@@ -420,20 +498,20 @@ function computeEnvironmentalAnalyticsJS(detections, imgW = 1280, imgH = 720) {
   let cleanupPriority = 'LOW';
   let riskLevel = 'MINIMAL';
   let pollutionColor = '#00D98E';
-  let pollutionBadge = '🟢 Low Pollution';
+  let pollutionBadge = 'Low Pollution';
 
   if (totalCoveragePct > 20 || totalObjs >= 15) {
     pollutionLevel = 'CRITICAL';
     cleanupPriority = 'HIGH';
     riskLevel = 'SEVERE';
     pollutionColor = '#FF4757';
-    pollutionBadge = '🔴 Critical Contamination';
+    pollutionBadge = 'Critical Contamination';
   } else if (totalCoveragePct > 10 || totalObjs >= 8) {
     pollutionLevel = 'MODERATE';
     cleanupPriority = 'MEDIUM';
     riskLevel = 'MODERATE';
     pollutionColor = '#FFB700';
-    pollutionBadge = '🟡 Moderate Pollution';
+    pollutionBadge = 'Moderate Pollution';
   }
 
   return {
@@ -590,19 +668,26 @@ function openDetectionModal(index) {
       `;
     }).join('') || '<tr><td colspan="6" style="text-align:center; padding: 1.5rem; color: var(--text-muted);">No individual object detections recorded</td></tr>';
 
+    const rawModelName = item.model_name || currEval.model_name || 'YOLOv8';
+    let shortModelBadge = rawModelName;
+    if (rawModelName.toLowerCase().includes('mixed') || rawModelName.toLowerCase().includes('ensemble')) {
+      shortModelBadge = 'MIXED ENSEMBLE';
+    }
+
     modal.innerHTML = `
       <div class="detection-modal-container">
         <div class="detection-modal-header">
-          <div>
-            <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+          <div class="detection-modal-header-text">
+            <div class="detection-modal-badges">
               <span class="badge badge-success">Scan Record #${item.id.toString().slice(-6)}</span>
-              <span class="badge" style="background: rgba(0,217,255,0.15); color: var(--primary); font-weight: 800;">${item.model_name || currEval.model_name}</span>
+              <span class="badge badge-model" title="${rawModelName}">${shortModelBadge}</span>
             </div>
-            <h2 style="font-size: 1.6rem; font-weight: 900; color: var(--text); margin-top: 0.4rem; letter-spacing: -0.5px;">
+            <h2 class="detection-modal-title">
               ${totalObjs > 0 ? `Found ${totalObjs} Object${totalObjs > 1 ? 's' : ''}` : 'No Objects Detected'}
             </h2>
-            <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.2rem;">
-              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:inline-block; vertical-align:middle; margin-right:4px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Scanned on ${item.date || 'Recent'}
+            <div class="detection-modal-date">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:inline-block; vertical-align:middle; margin-right:4px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              <span>Scanned on ${item.date || 'Recent'}</span>
             </div>
           </div>
           <button class="detection-modal-close" onclick="closeDetectionModal()" aria-label="Close modal">&times;</button>
@@ -611,76 +696,76 @@ function openDetectionModal(index) {
         <div class="detection-modal-body">
 
           <!-- 1. Pollution Severity Indicator Banner -->
-          <div class="card" style="margin-bottom: 1.5rem; padding: 1.25rem; background: var(--surface-elevated, rgba(15, 23, 42, 0.9)); border: 1px solid ${analytics.pollution_color}; box-shadow: 0 0 20px ${analytics.pollution_color}22;">
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-              <div>
-                <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.4rem; flex-wrap: wrap;">
-                  <span class="badge" style="background: ${analytics.pollution_color}22; color: ${analytics.pollution_color}; border: 1px solid ${analytics.pollution_color}66; font-size: 0.9rem; font-weight: 800; padding: 0.35rem 0.75rem;">
+          <div class="card modal-pollution-card" style="border: 1px solid ${analytics.pollution_color}; box-shadow: 0 0 20px ${analytics.pollution_color}22;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.85rem;">
+              <div style="flex: 1; min-width: 200px;">
+                <div class="modal-pollution-badges">
+                  <span class="badge modal-badge-severity" style="background: ${analytics.pollution_color}22; color: ${analytics.pollution_color}; border: 1px solid ${analytics.pollution_color}66;">
                     ${analytics.pollution_badge}
                   </span>
-                  <span class="badge" style="background: rgba(0, 217, 255, 0.15); color: var(--primary); font-weight: 800; font-size: 0.85rem;">
+                  <span class="badge modal-badge-priority">
                     Cleanup Priority: ${analytics.cleanup_priority}
                   </span>
                 </div>
-                <h3 style="font-size: 1.25rem; font-weight: 900; color: var(--text); margin: 0;">
-                  Water Body Pollution & Environmental Risk Assessment
+                <h3 class="modal-pollution-title">
+                  Water Body Pollution & Risk Assessment
                 </h3>
               </div>
 
-              <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
-                <div style="padding: 0.5rem 0.9rem; background: var(--surface, rgba(0,0,0,0.4)); border-radius: 8px; text-align: center; border: 1px solid var(--border);">
-                  <div style="font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Surface Coverage</div>
-                  <div style="font-size: 1.25rem; font-weight: 900; color: ${analytics.pollution_color};">${analytics.total_coverage_pct}%</div>
+              <div class="modal-pollution-stats">
+                <div class="modal-pollution-stat-box">
+                  <div class="stat-box-label">Surface Coverage</div>
+                  <div class="stat-box-value" style="color: ${analytics.pollution_color};">${analytics.total_coverage_pct}%</div>
                 </div>
-                <div style="padding: 0.5rem 0.9rem; background: var(--surface, rgba(0,0,0,0.4)); border-radius: 8px; text-align: center; border: 1px solid var(--border);">
-                  <div style="font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Risk Level</div>
-                  <div style="font-size: 1.25rem; font-weight: 900; color: var(--primary);">${analytics.risk_level}</div>
+                <div class="modal-pollution-stat-box">
+                  <div class="stat-box-label">Risk Level</div>
+                  <div class="stat-box-value" style="color: var(--primary);">${analytics.risk_level}</div>
                 </div>
               </div>
             </div>
           </div>
 
           <!-- 2. Top 8 Summary Metric Cards Grid -->
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.85rem; margin-bottom: 1.75rem;">
-            <div class="card" style="padding: 1rem; background: var(--surface-elevated, rgba(15, 23, 42, 0.6)); border: 1px solid var(--border);">
-              <div style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Total Objects</div>
-              <div style="font-size: 1.5rem; font-weight: 900; color: var(--primary); margin-top: 0.2rem;">${analytics.total_objects}</div>
-              <div style="font-size: 0.7rem; color: var(--text-secondary);">Detected items</div>
+          <div class="modal-metrics-grid">
+            <div class="card" style="padding: 0.85rem; background: var(--surface-elevated, rgba(15, 23, 42, 0.6)); border: 1px solid var(--border);">
+              <div style="font-size: 0.68rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Total Objects</div>
+              <div style="font-size: 1.35rem; font-weight: 900; color: var(--primary); margin-top: 0.15rem;">${analytics.total_objects}</div>
+              <div style="font-size: 0.65rem; color: var(--text-secondary);">Detected items</div>
             </div>
-            <div class="card" style="padding: 1rem; background: var(--surface-elevated, rgba(15, 23, 42, 0.6)); border: 1px solid var(--border);">
-              <div style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Waste Types</div>
-              <div style="font-size: 1.5rem; font-weight: 900; color: #00D98E; margin-top: 0.2rem;">${analytics.unique_types}</div>
-              <div style="font-size: 0.7rem; color: var(--text-secondary);">Unique classes</div>
+            <div class="card" style="padding: 0.85rem; background: var(--surface-elevated, rgba(15, 23, 42, 0.6)); border: 1px solid var(--border);">
+              <div style="font-size: 0.68rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Waste Types</div>
+              <div style="font-size: 1.35rem; font-weight: 900; color: #00D98E; margin-top: 0.15rem;">${analytics.unique_types}</div>
+              <div style="font-size: 0.65rem; color: var(--text-secondary);">Unique classes</div>
             </div>
-            <div class="card" style="padding: 1rem; background: var(--surface-elevated, rgba(15, 23, 42, 0.6)); border: 1px solid var(--border);">
-              <div style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Water Coverage</div>
-              <div style="font-size: 1.5rem; font-weight: 900; color: ${analytics.pollution_color}; margin-top: 0.2rem;">${analytics.total_coverage_pct}%</div>
-              <div style="font-size: 0.7rem; color: var(--text-secondary);">Surface affected</div>
+            <div class="card" style="padding: 0.85rem; background: var(--surface-elevated, rgba(15, 23, 42, 0.6)); border: 1px solid var(--border);">
+              <div style="font-size: 0.68rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Water Coverage</div>
+              <div style="font-size: 1.35rem; font-weight: 900; color: ${analytics.pollution_color}; margin-top: 0.15rem;">${analytics.total_coverage_pct}%</div>
+              <div style="font-size: 0.65rem; color: var(--text-secondary);">Surface affected</div>
             </div>
-            <div class="card" style="padding: 1rem; background: var(--surface-elevated, rgba(15, 23, 42, 0.6)); border: 1px solid var(--border);">
-              <div style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Avg Confidence</div>
-              <div style="font-size: 1.5rem; font-weight: 900; color: #A78BFA; margin-top: 0.2rem;">${analytics.avg_confidence_pct}%</div>
-              <div style="font-size: 0.7rem; color: var(--text-secondary);">Model certainty</div>
+            <div class="card" style="padding: 0.85rem; background: var(--surface-elevated, rgba(15, 23, 42, 0.6)); border: 1px solid var(--border);">
+              <div style="font-size: 0.68rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Avg Confidence</div>
+              <div style="font-size: 1.35rem; font-weight: 900; color: #A78BFA; margin-top: 0.15rem;">${analytics.avg_confidence_pct}%</div>
+              <div style="font-size: 0.65rem; color: var(--text-secondary);">Model certainty</div>
             </div>
-            <div class="card" style="padding: 1rem; background: var(--surface-elevated, rgba(15, 23, 42, 0.6)); border: 1px solid var(--border);">
-              <div style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Max Confidence</div>
-              <div style="font-size: 1.5rem; font-weight: 900; color: var(--primary); margin-top: 0.2rem;">${analytics.max_confidence_pct}%</div>
-              <div style="font-size: 0.7rem; color: var(--text-secondary);">Top object score</div>
+            <div class="card" style="padding: 0.85rem; background: var(--surface-elevated, rgba(15, 23, 42, 0.6)); border: 1px solid var(--border);">
+              <div style="font-size: 0.68rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Max Confidence</div>
+              <div style="font-size: 1.35rem; font-weight: 900; color: var(--primary); margin-top: 0.15rem;">${analytics.max_confidence_pct}%</div>
+              <div style="font-size: 0.65rem; color: var(--text-secondary);">Top object score</div>
             </div>
-            <div class="card" style="padding: 1rem; background: var(--surface-elevated, rgba(15, 23, 42, 0.6)); border: 1px solid var(--border);">
-              <div style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Avg Object Size</div>
-              <div style="font-size: 1.5rem; font-weight: 900; color: #FFB700; margin-top: 0.2rem;">${analytics.avg_object_area_pct}%</div>
-              <div style="font-size: 0.7rem; color: var(--text-secondary);">Area per object</div>
+            <div class="card" style="padding: 0.85rem; background: var(--surface-elevated, rgba(15, 23, 42, 0.6)); border: 1px solid var(--border);">
+              <div style="font-size: 0.68rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Avg Object Size</div>
+              <div style="font-size: 1.35rem; font-weight: 900; color: #FFB700; margin-top: 0.15rem;">${analytics.avg_object_area_pct}%</div>
+              <div style="font-size: 0.65rem; color: var(--text-secondary);">Area per object</div>
             </div>
-            <div class="card" style="padding: 1rem; background: var(--surface-elevated, rgba(15, 23, 42, 0.6)); border: 1px solid var(--border);">
-              <div style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Inference Time</div>
-              <div style="font-size: 1.5rem; font-weight: 900; color: #00D98E; margin-top: 0.2rem;">${item.inference_time_ms || currEval.inference_time || '14 ms'}</div>
-              <div style="font-size: 0.7rem; color: var(--text-secondary);">Frame latency</div>
+            <div class="card" style="padding: 0.85rem; background: var(--surface-elevated, rgba(15, 23, 42, 0.6)); border: 1px solid var(--border);">
+              <div style="font-size: 0.68rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Inference Time</div>
+              <div style="font-size: 1.35rem; font-weight: 900; color: #00D98E; margin-top: 0.15rem;">${item.inference_time_ms || currEval.inference_time || '14 ms'}</div>
+              <div style="font-size: 0.65rem; color: var(--text-secondary);">Frame latency</div>
             </div>
-            <div class="card" style="padding: 1rem; background: var(--surface-elevated, rgba(15, 23, 42, 0.6)); border: 1px solid var(--border);">
-              <div style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Processing FPS</div>
-              <div style="font-size: 1.5rem; font-weight: 900; color: var(--primary); margin-top: 0.2rem;">${currEval.fps || '65 FPS'}</div>
-              <div style="font-size: 0.7rem; color: var(--text-secondary);">Inference speed</div>
+            <div class="card" style="padding: 0.85rem; background: var(--surface-elevated, rgba(15, 23, 42, 0.6)); border: 1px solid var(--border);">
+              <div style="font-size: 0.68rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Processing FPS</div>
+              <div style="font-size: 1.35rem; font-weight: 900; color: var(--primary); margin-top: 0.15rem;">${currEval.fps || '65 FPS'}</div>
+              <div style="font-size: 0.65rem; color: var(--text-secondary);">Inference speed</div>
             </div>
           </div>
 
@@ -764,22 +849,22 @@ function openDetectionModal(index) {
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.25rem; margin-bottom: 2rem;">
             <!-- 3x3 Spatial Grid -->
             <div class="card" style="padding: 1.25rem;">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
-                <h4 style="font-size: 1.05rem; font-weight: 800; color: var(--text); margin: 0; display: flex; align-items: center; gap: 0.4rem;">
-                  <svg width="18" height="18" fill="none" stroke="var(--primary)" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
-                  Spatial Accumulation Grid (3×3)
+              <div class="card-chart-header">
+                <h4 class="card-chart-title">
+                  <svg width="18" height="18" fill="none" stroke="var(--primary)" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:middle; margin-right:4px;"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                  Spatial Accumulation Grid
                 </h4>
-                <span class="badge badge-success" style="font-size: 0.75rem;">Hotspot: ${analytics.hotspot_region}</span>
+                <span class="badge badge-success badge-chart-type" style="white-space: nowrap;">Hotspot: ${analytics.hotspot_region}</span>
               </div>
-              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; background: var(--surface, rgba(0,0,0,0.3)); padding: 0.6rem; border-radius: 8px; border: 1px solid var(--border);">
+              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.45rem; background: var(--surface, rgba(0,0,0,0.3)); padding: 0.6rem; border-radius: 8px; border: 1px solid var(--border);">
                 ${(analytics.spatial_grid || [[0,0,0],[0,0,0],[0,0,0]]).map((row, r) => row.map((cnt, c) => {
                   const labels = ['Top-Left','Top-Center','Top-Right','Mid-Left','Center','Mid-Right','Bot-Left','Bot-Center','Bot-Right'];
                   const fullLabels = ['Top-Left','Top-Center','Top-Right','Middle-Left','Center','Middle-Right','Bottom-Left','Bottom-Center','Bottom-Right'];
                   const isHotspot = analytics.hotspot_region === fullLabels[r*3+c];
                   return `
-                    <div style="padding: 0.6rem 0.3rem; text-align: center; border-radius: 6px; background: ${cnt > 0 ? 'rgba(0, 217, 255, 0.15)' : 'var(--surface-elevated, rgba(15,23,42,0.4))'}; border: 1px solid ${isHotspot ? 'var(--primary)' : 'var(--border)'};">
-                      <div style="font-size: 0.65rem; color: var(--text-muted); font-weight: 700;">${labels[r*3+c]}</div>
-                      <div style="font-size: 1.1rem; font-weight: 900; color: var(--primary); margin-top: 0.1rem;">${cnt}</div>
+                    <div style="padding: 0.65rem 0.25rem; text-align: center; border-radius: 6px; background: ${cnt > 0 ? 'rgba(0, 217, 255, 0.15)' : 'var(--surface-elevated, rgba(15,23,42,0.4))'}; border: 1px solid ${isHotspot ? 'var(--primary)' : 'var(--border)'};">
+                      <div style="font-size: 0.65rem; color: var(--text-muted); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${labels[r*3+c]}</div>
+                      <div style="font-size: 1.15rem; font-weight: 900; color: var(--primary); margin-top: 0.1rem;">${cnt}</div>
                     </div>
                   `;
                 }).join('')).join('')}
@@ -788,26 +873,28 @@ function openDetectionModal(index) {
 
             <!-- Environmental Assessment Card -->
             <div class="card" style="padding: 1.25rem; background: rgba(0, 217, 255, 0.03); border: 1px solid rgba(0, 217, 255, 0.25);">
-              <h4 style="font-size: 1.05rem; font-weight: 800; color: var(--text); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.4rem;">
-                <svg width="18" height="18" fill="none" stroke="var(--primary)" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                Environmental Decision & Cleanup Priority
-              </h4>
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
-                <div style="padding: 0.6rem; background: var(--surface-elevated, rgba(15,23,42,0.6)); border-radius: 6px; border: 1px solid var(--border);">
-                  <div style="font-size: 0.65rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Pollution Level</div>
-                  <div style="font-size: 1.05rem; font-weight: 900; color: ${analytics.pollution_color}; margin-top: 0.1rem;">${analytics.pollution_level}</div>
+              <div class="card-chart-header">
+                <h4 class="card-chart-title">
+                  <svg width="18" height="18" fill="none" stroke="var(--primary)" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:middle; margin-right:4px;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                  Environmental Decision & Priority
+                </h4>
+              </div>
+              <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.65rem; margin-bottom: 0.75rem;">
+                <div style="padding: 0.65rem 0.5rem; background: var(--surface-elevated, rgba(15,23,42,0.6)); border-radius: 6px; border: 1px solid var(--border);">
+                  <div style="font-size: 0.62rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Pollution Level</div>
+                  <div style="font-size: 0.95rem; font-weight: 900; color: ${analytics.pollution_color}; margin-top: 0.1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${analytics.pollution_level}</div>
                 </div>
-                <div style="padding: 0.6rem; background: var(--surface-elevated, rgba(15,23,42,0.6)); border-radius: 6px; border: 1px solid var(--border);">
-                  <div style="font-size: 0.65rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Cleanup Priority</div>
-                  <div style="font-size: 1.05rem; font-weight: 900; color: var(--primary); margin-top: 0.1rem;">${analytics.cleanup_priority}</div>
+                <div style="padding: 0.65rem 0.5rem; background: var(--surface-elevated, rgba(15,23,42,0.6)); border-radius: 6px; border: 1px solid var(--border);">
+                  <div style="font-size: 0.62rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Cleanup Priority</div>
+                  <div style="font-size: 0.95rem; font-weight: 900; color: var(--primary); margin-top: 0.1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${analytics.cleanup_priority}</div>
                 </div>
-                <div style="padding: 0.6rem; background: var(--surface-elevated, rgba(15,23,42,0.6)); border-radius: 6px; border: 1px solid var(--border);">
-                  <div style="font-size: 0.65rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Environmental Risk</div>
-                  <div style="font-size: 1.05rem; font-weight: 900; color: #00D98E; margin-top: 0.1rem;">${analytics.risk_level}</div>
+                <div style="padding: 0.65rem 0.5rem; background: var(--surface-elevated, rgba(15,23,42,0.6)); border-radius: 6px; border: 1px solid var(--border);">
+                  <div style="font-size: 0.62rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Environmental Risk</div>
+                  <div style="font-size: 0.95rem; font-weight: 900; color: #00D98E; margin-top: 0.1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${analytics.risk_level}</div>
                 </div>
-                <div style="padding: 0.6rem; background: var(--surface-elevated, rgba(15,23,42,0.6)); border-radius: 6px; border: 1px solid var(--border);">
-                  <div style="font-size: 0.65rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Waste Density</div>
-                  <div style="font-size: 0.95rem; font-weight: 800; color: var(--text); margin-top: 0.1rem;">${analytics.waste_density}</div>
+                <div style="padding: 0.65rem 0.5rem; background: var(--surface-elevated, rgba(15,23,42,0.6)); border-radius: 6px; border: 1px solid var(--border);">
+                  <div style="font-size: 0.62rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Waste Density</div>
+                  <div style="font-size: 0.85rem; font-weight: 800; color: var(--text); margin-top: 0.1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${(analytics.waste_density || '0 obj / frame').replace('objects / frame', 'obj / frame').replace('object / frame', 'obj / frame')}</div>
                 </div>
               </div>
               <div style="padding: 0.75rem; background: rgba(0, 217, 255, 0.05); border: 1px solid rgba(0, 217, 255, 0.2); border-radius: 6px; font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4;">
@@ -951,6 +1038,7 @@ function openDetectionModal(index) {
       const ctxComp = document.getElementById('modalCompositionChart');
       if (ctxComp) {
         if (compLabels.length > 0) {
+          const isMobile = window.innerWidth <= 768;
           new Chart(ctxComp, {
             type: 'doughnut',
             data: {
@@ -966,7 +1054,10 @@ function openDetectionModal(index) {
               responsive: true,
               maintainAspectRatio: false,
               plugins: {
-                legend: { position: 'right', labels: { color: '#64748b', font: { family: 'Inter', size: 11, weight: 'bold' } } },
+                legend: {
+                  position: isMobile ? 'bottom' : 'right',
+                  labels: { color: '#64748b', font: { family: 'Inter', size: 11, weight: 'bold' }, padding: 10, boxWidth: 12 }
+                },
                 tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.raw}% (${compCounts[ctx.dataIndex]} items)` } }
               }
             }

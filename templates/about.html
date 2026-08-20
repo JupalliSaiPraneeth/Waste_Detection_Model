@@ -37,27 +37,24 @@
       </div>
       <div class="nav-right">
         <button class="theme-toggle-btn" id="themeToggle" aria-label="Toggle theme" title="Toggle Theme">
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="vertical-align:middle; display:inline-block;"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
-          <span style="font-weight:700;">Dark Mode</span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
         </button>
-        <button class="icon-btn" id="notifBtn" aria-label="Notifications"><svg xmlns="http://www.w3.org/2000/svg"
-            width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round"
-              d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-          </svg></button>
-
+        <button class="mobile-menu-toggle" id="mobileMenuBtn" aria-label="Toggle Navigation">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" /></svg>
+        </button>
       </div>
     </div>
   </nav>
 
   <main class="dashboard">
     <!-- Page Header -->
-    <div style="max-width: 1200px; margin: 0 auto 2rem;">
-      <h1 style="font-size: 2.8rem; font-weight: 900; color: var(--text); letter-spacing: -1px; margin-bottom: 0.5rem;">
+    <div style="max-width: 1200px; margin: 0 auto 1.5rem;">
+      <h1 style="font-size: clamp(1.45rem, 4vw, 2.4rem); font-weight: 900; color: var(--text); letter-spacing: -0.5px; margin-bottom: 0.35rem; line-height: 1.25; display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
         <img src="{{ url_for('static', filename='images/enhancedlogo.png') }}" alt="Enhanced Logo"
-          style="height: 80px; vertical-align: middle; margin-right: 15px;" /> About WastageDetection
+          style="height: 44px; width: auto; object-fit: contain; flex-shrink: 0;" />
+        <span>About WastageDetection</span>
       </h1>
-      <p style="color: var(--text-muted); font-size: 1.05rem;">
+      <p style="color: var(--text-muted); font-size: 0.88rem; line-height: 1.45;">
         An AI-powered platform for monitoring and detecting aquatic waste using state-of-the-art object detection models
       </p>
     </div>
@@ -350,16 +347,14 @@
       <p style="color: var(--text-secondary); font-size: 1.05rem; margin-bottom: 1.5rem;">
         Join us in protecting aquatic ecosystems with AI-powered waste detection
       </p>
-      <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-        <a href="/" class="btn btn-primary">
-          <svg style="display: inline-block; vertical-align: middle;" width="18" height="18" fill="none"
-            stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <div class="about-cta-row" style="display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap;">
+        <a href="/" class="btn btn-primary" style="padding: 0.75rem 1.5rem; font-weight: 800; font-size: 0.9rem; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
           </svg> Start Detecting
         </a>
-        <a href="/live" class="btn btn-ghost">
-          <svg style="display: inline-block; vertical-align: middle;" width="18" height="18" fill="none"
-            stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <a href="/live" class="btn btn-ghost" style="padding: 0.75rem 1.5rem; font-weight: 700; font-size: 0.9rem; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round"
               d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
           </svg> Try Live Detection
