@@ -1880,10 +1880,14 @@ def research_paper():
 
 def generate_docx_research_paper(model_data):
     """Generate native Microsoft Word (.docx) 18-section research paper document."""
-    import docx
-    from docx.shared import Inches, Pt, RGBColor
-    from docx.enum.text import WD_ALIGN_PARAGRAPH
-    from docx.enum.table import WD_TABLE_ALIGNMENT
+    try:
+        import docx
+        from docx.shared import Inches, Pt, RGBColor
+        from docx.enum.text import WD_ALIGN_PARAGRAPH
+        from docx.enum.table import WD_TABLE_ALIGNMENT
+    except Exception as e:
+        logger.error(f"python-docx unavailable or failed to load: {e}")
+        return None
 
     doc = docx.Document()
     
@@ -2184,14 +2188,19 @@ def export_research_paper():
                 model_data[k] = v
 
     if fmt == "docx":
-        buffer = generate_docx_research_paper(model_data)
-        safe_name = model_data["model_name"].replace(" ", "_")
-        return send_file(
-            buffer,
-            mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            as_attachment=True,
-            download_name=f"{safe_name}_Research_Paper.docx"
-        )
+        try:
+            buffer = generate_docx_research_paper(model_data)
+            if buffer is not None:
+                safe_name = model_data["model_name"].replace(" ", "_")
+                return send_file(
+                    buffer,
+                    mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    as_attachment=True,
+                    download_name=f"{safe_name}_Research_Paper.docx"
+                )
+        except Exception as err:
+            logger.error(f"Failed to generate docx research paper: {err}")
+        return redirect(url_for("research_paper", model=canonical_id))
     
     if fmt == "tex":
         tex_path = BASE_DIR / "RT_DETR_Research_Paper.tex"
