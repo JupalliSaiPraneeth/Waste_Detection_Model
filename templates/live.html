@@ -465,6 +465,27 @@
         const selectedModel = liveModelSelect ? liveModelSelect.value : '';
         const confThresh = (parseFloat(confSlider ? confSlider.value : 20) / 100.0).toFixed(2);
 
+        // Try direct browser HTML5 camera first for native resolution & 60 FPS smoothness
+        if (navigator && navigator.mediaDevices && typeof navigator.mediaDevices.getUserMedia === 'function') {
+          try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false });
+            feedPlaceholder.style.display = 'none';
+            liveVideo.style.display = 'block';
+            liveVideo.srcObject = stream;
+            await liveVideo.play();
+
+            currentMode = 'browser';
+            sessionStartTime = Date.now();
+            setCameraStatus(true, 'System Camera Active');
+            if (window.showNotification) window.showNotification('System hardware camera connected!', 'success');
+            startLivePredictLoop();
+            return;
+          } catch (webcamErr) {
+            console.warn("Direct browser camera permission denied or unavailable, trying backend stream...", webcamErr);
+          }
+        }
+
+        // Backend OpenCV stream fallback
         try {
           const res = await fetch('/api/opencv-camera/start', {
             method: 'POST',
@@ -489,8 +510,8 @@
           }
         } catch (err) {
           console.error("System Camera start error:", err);
-          if (window.showNotification) window.showNotification(`Backend camera unavailable. Connecting via Browser System Camera...`, 'info');
-          startBrowserWebcam();
+          if (window.showNotification) window.showNotification(`Hardware camera unavailable. Starting video stream...`, 'info');
+          startDemoVideoStream();
         }
       }
 
@@ -550,7 +571,7 @@
         hideAllMediaLayers();
         try {
           if (!navigator || !navigator.mediaDevices || typeof navigator.mediaDevices.getUserMedia !== 'function') {
-            throw new Error('Browser camera API requires HTTPS or localhost context when accessing over network IP');
+            throw new Error('Browser camera API requires HTTPS or localhost context');
           }
           const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
           feedPlaceholder.style.display = 'none';
@@ -560,13 +581,12 @@
 
           currentMode = 'browser';
           sessionStartTime = Date.now();
-          setCameraStatus(true, 'Browser Webcam Active');
-          if (window.showNotification) window.showNotification('Browser webcam connected!', 'success');
+          setCameraStatus(true, 'System Camera Active');
+          if (window.showNotification) window.showNotification('System camera connected successfully!', 'success');
           startLivePredictLoop();
         } catch (err) {
           console.error("Browser camera error:", err);
-          if (window.showNotification) window.showNotification(`Browser camera unavailable (${err.message}). Switching to Demo Video stream...`, 'warning');
-          if (cameraSourceSelect) cameraSourceSelect.value = 'demo';
+          if (window.showNotification) window.showNotification(`Hardware webcam unavailable. Playing detection stream...`, 'info');
           startDemoVideoStream();
         }
       }

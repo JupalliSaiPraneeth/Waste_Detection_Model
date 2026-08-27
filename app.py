@@ -371,18 +371,16 @@ class OpenCVCameraStream:
             self.current_model_id = model_id
 
         with self.lock:
-            if not self.is_running:
-                return None, []
-            if self.latest_frame is None:
-                init_frame = np.zeros((480, 640, 3), dtype=np.uint8)
-                init_frame[:, :] = (15, 23, 42)
-                cv2.putText(init_frame, "Initializing Camera Stream...", (120, 240),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 217, 255), 2, cv2.LINE_AA)
-                ret_jpg, jpeg_buf = cv2.imencode('.jpg', init_frame, [int(cv2.IMWRITE_JPEG_QUALITY), 80])
-                return (jpeg_buf.tobytes() if ret_jpg else None), []
-
-            frame = self.latest_frame.copy()
+            frame = self.latest_frame.copy() if self.latest_frame is not None else None
             detections = list(self.latest_detections)
+
+        if frame is None:
+            init_frame = np.zeros((480, 640, 3), dtype=np.uint8)
+            init_frame[:, :] = (15, 23, 42)
+            cv2.putText(init_frame, "Initializing System Camera...", (100, 240),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 217, 255), 2, cv2.LINE_AA)
+            ret_jpg, jpeg_buf = cv2.imencode('.jpg', init_frame, [int(cv2.IMWRITE_JPEG_QUALITY), 80])
+            return (jpeg_buf.tobytes() if ret_jpg else None), []
 
         annotated_frame = draw_opencv_detections(frame, detections)
         ret_jpg, jpeg_buf = cv2.imencode('.jpg', annotated_frame, [int(cv2.IMWRITE_JPEG_QUALITY), 80])
@@ -2276,14 +2274,15 @@ def video_feed():
         camera_stream.conf = conf
 
     def generate_mjpeg():
-        while camera_stream.is_running:
+        start_t = time.time()
+        while True:
             frame_bytes, _ = camera_stream.get_frame(model_id=model_id)
-            if frame_bytes is None:
-                time.sleep(0.01)
-                continue
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
-            time.sleep(0.015)  # Up to 60 FPS smooth video streaming
+            if frame_bytes is not None:
+                yield (b'--frame\r\n'
+                       b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
+            time.sleep(0.02)
+            if not camera_stream.is_running and (time.time() - start_t > 3):
+                break
 
     return Response(generate_mjpeg(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
