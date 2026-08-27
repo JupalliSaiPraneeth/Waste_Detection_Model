@@ -86,8 +86,8 @@
             <!-- Video / OpenCV Container -->
             <div style="position: relative; width: 100%; aspect-ratio: 16 / 9; max-height: 380px; min-height: 200px; background: #000; border-radius: 14px; overflow: hidden; border: 1px solid rgba(0, 217, 255, 0.25); display: flex; align-items: center; justify-content: center;">
               
-              <!-- OpenCV Live Stream Image Element -->
-              <img id="opencvVideoFeed" src="" alt="OpenCV Camera Stream" style="width: 100%; height: 100%; object-fit: cover; display: none;">
+              <!-- OpenCV Live Stream Canvas Element -->
+              <canvas id="opencvCanvas" style="width: 100%; height: 100%; object-fit: cover; display: none;"></canvas>
               
               <!-- HTML5 Fallback Video Element -->
               <video id="liveVideo" playsinline autoplay muted loop controls preload="auto" style="width: 100%; height: 100%; object-fit: cover; display: none;"></video>
@@ -362,15 +362,13 @@
       const captureBtn = document.getElementById('captureBtn');
       const detectionsList = document.getElementById('detectionsList');
       const fpsVal = document.getElementById('fpsVal');
-      const opencvVideoFeed = document.getElementById('opencvVideoFeed');
+      const opencvCanvas = document.getElementById('opencvCanvas');
       const liveVideo = document.getElementById('liveVideo');
       const overlayCanvas = document.getElementById('liveOverlayCanvas');
       const feedPlaceholder = document.getElementById('feedPlaceholder');
-      const cameraSourceSelect = document.getElementById('cameraSourceSelect');
       const liveModelSelect = document.getElementById('liveModelSelect');
       const confSlider = document.getElementById('confSlider');
       const confVal = document.getElementById('confVal');
-      const videoFileInput = document.getElementById('videoFileInput');
       const exportLiveCsvBtn = document.getElementById('exportLiveCsvBtn');
 
       const liveGalleryGrid = document.getElementById('liveGalleryGrid');
@@ -394,6 +392,7 @@
       let detectionCount = 0;
       let sessionStartTime = null;
       let statusPollInterval = null;
+      let opencvStreamInterval = null;
       let currentMode = 'standby';
       let customVideoUrl = null;
       let livePredictLoopId = null;
@@ -402,16 +401,6 @@
       window.addEventListener('load', renderLiveGallery);
       document.addEventListener('DOMContentLoaded', renderLiveGallery);
       setTimeout(renderLiveGallery, 300);
-
-      // Handle OpenCV Image Load Error safely without recursion
-      if (opencvVideoFeed) {
-        opencvVideoFeed.onerror = function() {
-          if (!opencvVideoFeed.getAttribute('src') || opencvVideoFeed.style.display === 'none' || currentMode !== 'opencv') return;
-          console.warn("OpenCV backend camera feed error. Switching to Browser System Camera...");
-          if (window.showNotification) window.showNotification("Backend camera feed unavailable. Connecting via Browser System Camera...", "info");
-          startBrowserWebcam();
-        };
-      }
 
       function setCameraStatus(active, text = 'Standby') {
         if (!camStatusBadge || !camDot || !camStatusText) return;
@@ -429,11 +418,18 @@
         }
       }
 
+      function stopOpenCVCanvasStream() {
+        if (opencvStreamInterval) {
+          clearInterval(opencvStreamInterval);
+          opencvStreamInterval = null;
+        }
+      }
+
       function hideAllMediaLayers() {
         stopLivePredictLoop();
-        if (opencvVideoFeed) {
-          opencvVideoFeed.style.display = 'none';
-          opencvVideoFeed.removeAttribute('src');
+        stopOpenCVCanvasStream();
+        if (opencvCanvas) {
+          opencvCanvas.style.display = 'none';
         }
         if (liveVideo) {
           liveVideo.style.display = 'none';
@@ -445,27 +441,46 @@
         if (feedPlaceholder) feedPlaceholder.style.display = 'block';
       }
 
+      function startOpenCVCanvasStream() {
+        stopOpenCVCanvasStream();
+        if (!opencvCanvas) return;
+        const ctx = opencvCanvas.getContext('2d');
+        feedPlaceholder.style.display = 'none';
+        opencvCanvas.style.display = 'block';
+
+        let isFetching = false;
+        opencvStreamInterval = setInterval(() => {
+          if (isFetching || currentMode !== 'opencv') return;
+          isFetching = true;
+
+          const selectedModel = liveModelSelect ? liveModelSelect.value : '';
+          const confThresh = (parseFloat(confSlider ? confSlider.value : 20) / 100.0).toFixed(2);
+
+          const img = new Image();
+          img.onload = function() {
+            opencvCanvas.width = img.naturalWidth || 640;
+            opencvCanvas.height = img.naturalHeight || 480;
+            ctx.drawImage(img, 0, 0);
+            isFetching = false;
+          };
+          img.onerror = function() {
+            isFetching = false;
+          };
+          img.src = `/api/opencv-camera/frame?model=${encodeURIComponent(selectedModel)}&conf=${confThresh}&t=${Date.now()}`;
+        }, 50);
+      }
+
       confSlider && confSlider.addEventListener('input', () => {
         const val = confSlider.value;
         if (confVal) confVal.textContent = `${val}%`;
-        if (currentMode === 'opencv') {
-          updateOpenCVStreamSource();
-        }
       });
-
-      function updateOpenCVStreamSource() {
-        if (currentMode !== 'opencv') return;
-        const selectedModel = liveModelSelect ? liveModelSelect.value : '';
-        const confThresh = (parseFloat(confSlider ? confSlider.value : 20) / 100.0).toFixed(2);
-        opencvVideoFeed.src = `/video_feed?model=${encodeURIComponent(selectedModel)}&cam=0&conf=${confThresh}&t=${Date.now()}`;
-      }
 
       async function startOpenCVSession(camIdx = 0) {
         hideAllMediaLayers();
         const selectedModel = liveModelSelect ? liveModelSelect.value : '';
         const confThresh = (parseFloat(confSlider ? confSlider.value : 20) / 100.0).toFixed(2);
 
-        // Try direct browser HTML5 camera first for native resolution & 60 FPS smoothness
+        // Try direct browser HTML5 camera first for native 60 FPS resolution & zero latency
         if (navigator && navigator.mediaDevices && typeof navigator.mediaDevices.getUserMedia === 'function') {
           try {
             const stream = await navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false });
@@ -481,7 +496,7 @@
             startLivePredictLoop();
             return;
           } catch (webcamErr) {
-            console.warn("Direct browser camera permission denied or unavailable, trying backend stream...", webcamErr);
+            console.warn("Direct browser camera unavailable, trying backend stream...", webcamErr);
           }
         }
 
@@ -495,15 +510,11 @@
 
           const data = await res.json();
           if (res.ok && data.status === 'started') {
-            feedPlaceholder.style.display = 'none';
-            opencvVideoFeed.style.display = 'block';
-            updateOpenCVStreamSource();
-
             currentMode = 'opencv';
             sessionStartTime = Date.now();
+            startOpenCVCanvasStream();
             setCameraStatus(true, `System Camera Active`);
             if (window.showNotification) window.showNotification(`System hardware camera started!`, 'success');
-            
             startStatusPolling();
           } else {
             throw new Error(data.error || 'Failed to start System camera');

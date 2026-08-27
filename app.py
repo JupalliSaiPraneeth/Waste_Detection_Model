@@ -2287,6 +2287,20 @@ def video_feed():
     return Response(generate_mjpeg(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 
+@app.route("/api/opencv-camera/frame")
+def opencv_camera_frame():
+    model_id = request.args.get("model", None)
+    conf = request.args.get("conf", 0.20, type=float)
+    if not camera_stream.is_running:
+        camera_stream.start(0, model_id=model_id, conf=conf)
+
+    frame_bytes, _ = camera_stream.get_frame(model_id=model_id)
+    if frame_bytes is None:
+        return jsonify({"error": "Frame unavailable"}), 404
+
+    return Response(frame_bytes, mimetype='image/jpeg')
+
+
 @app.route("/api/opencv-camera/start", methods=["POST"])
 def opencv_camera_start():
     data = request.get_json(silent=True) or {}
