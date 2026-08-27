@@ -2295,8 +2295,13 @@ def opencv_camera_frame():
         camera_stream.start(0, model_id=model_id, conf=conf)
 
     frame_bytes, _ = camera_stream.get_frame(model_id=model_id)
-    if frame_bytes is None:
-        return jsonify({"error": "Frame unavailable"}), 404
+    if not frame_bytes:
+        init_frame = np.zeros((480, 640, 3), dtype=np.uint8)
+        init_frame[:, :] = (15, 23, 42)
+        cv2.putText(init_frame, "System Camera Standby", (140, 240),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 217, 255), 2, cv2.LINE_AA)
+        _, jpeg_buf = cv2.imencode('.jpg', init_frame)
+        frame_bytes = jpeg_buf.tobytes()
 
     return Response(frame_bytes, mimetype='image/jpeg')
 
