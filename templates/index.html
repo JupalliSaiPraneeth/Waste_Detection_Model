@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>WastageDetection - AI-Powered Aquatic Waste Detection</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="shortcut icon" type="image/png" href="{{ url_for('static', filename='images/wastelogo.png') }}">
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -33,11 +34,12 @@
           </div>
         </div>
         <ul class="nav-links">
-          <li><a href="/" class="nav-link active">Home</a></li>
+          <li><a href="/" class="nav-link">Home</a></li>
           <li><a href="/dashboard" class="nav-link">Dashboard</a></li>
           <li><a href="/live" class="nav-link">Live Detection</a></li>
           <li><a href="/analytics" class="nav-link">Analytics</a></li>
           <li><a href="/reports" class="nav-link">Reports</a></li>
+          <li><a href="/research-paper" class="nav-link">Research Paper</a></li>
           <li><a href="/about" class="nav-link">About</a></li>
         </ul>
       </div>
@@ -55,9 +57,20 @@
   <main>
     <!-- Hero Section with Video Background -->
     <section class="hero-section">
-      <video id="heroBgVideo" class="hero-bg-video" autoplay muted loop playsinline>
+      <video id="heroBgVideo" class="hero-bg-video" autoplay muted loop playsinline preload="auto">
+        <source src="{{ url_for('static', filename='images/detectionvideo.mp4') }}" type="video/mp4">
         <source src="/detectionvideo.mp4" type="video/mp4">
       </video>
+      <script>
+        (function() {
+          var v = document.getElementById('heroBgVideo');
+          if (v) {
+            v.muted = true;
+            v.defaultMuted = true;
+            v.play().catch(function() {});
+          }
+        })();
+      </script>
       <div class="hero-overlay"></div>
 
       <div class="hero-inner">

@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Live Camera Detection — WastageDetection</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="shortcut icon" type="image/png" href="{{ url_for('static', filename='images/wastelogo.png') }}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -31,9 +32,10 @@
         <ul class="nav-links">
           <li><a href="/" class="nav-link">Home</a></li>
           <li><a href="/dashboard" class="nav-link">Dashboard</a></li>
-          <li><a href="/live" class="nav-link active">Live Detection</a></li>
+          <li><a href="/live" class="nav-link">Live Detection</a></li>
           <li><a href="/analytics" class="nav-link">Analytics</a></li>
           <li><a href="/reports" class="nav-link">Reports</a></li>
+          <li><a href="/research-paper" class="nav-link">Research Paper</a></li>
           <li><a href="/about" class="nav-link">About</a></li>
         </ul>
       </div>
@@ -88,7 +90,7 @@
               <img id="opencvVideoFeed" src="" alt="OpenCV Camera Stream" style="width: 100%; height: 100%; object-fit: cover; display: none;">
               
               <!-- HTML5 Fallback Video Element -->
-              <video id="liveVideo" playsinline autoplay muted style="width: 100%; height: 100%; object-fit: cover; display: none;"></video>
+              <video id="liveVideo" playsinline autoplay muted loop controls preload="auto" style="width: 100%; height: 100%; object-fit: cover; display: none;"></video>
               <canvas id="liveOverlayCanvas" style="position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; display: none;"></canvas>
 
               <!-- Placeholder Standby Screen -->
@@ -134,17 +136,15 @@
                 </button>
               </div>
             </div>
-
             <!-- Options Row (Camera Source, Model & Confidence Selection) -->
             <div style="margin-top: 1rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem;">
               <div>
                 <label for="cameraSourceSelect" style="display: block; font-size: 0.85rem; color: var(--text-muted); font-weight: 700; margin-bottom: 0.3rem;">
                   Camera Engine & Source:
-                </label>
-                <select id="cameraSourceSelect" class="select-field" style="width: 100%;">
-                  <option value="opencv_0">OpenCV Camera 0 (System Webcam)</option>
+                </label>                <select id="cameraSourceSelect" class="select-field" style="width: 100%;">
+                  <option value="opencv_0" selected>OpenCV Camera 0 (System Backend Cam)</option>
+                  <option value="browser">Browser Camera (HTML5 Webcam)</option>
                   <option value="opencv_1">OpenCV Camera 1 (Secondary Cam)</option>
-                  <option value="browser">Browser Camera (getUserMedia)</option>
                   <option value="demo">Demo Video Feed (detectionvideo.mp4)</option>
                   <option value="upload">Upload Custom Video File...</option>
                 </select>
@@ -196,10 +196,36 @@
             </div>
             <a class="btn btn-secondary btn-small" href="#" id="exportLiveCsvBtn" style="margin: 0; padding: 0.45rem 0.75rem; font-size: 0.78rem; font-weight: 800; display: inline-flex; align-items: center; gap: 0.35rem;">
               <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-              </svg> Export Data CSV
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg> Export Stream Log (.CSV)
             </a>
           </div>
+        </div>
+      </div>
+
+      <!-- Controls Row below Feed -->
+      <div class="card" style="margin-bottom: 2rem; padding: 1.25rem;">
+        <div style="display: flex; gap: 0.85rem; align-items: center; flex-wrap: wrap;">
+          <button id="startCam" class="btn btn-primary" style="flex: 1; min-width: 180px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display: inline-block; vertical-align: middle; margin-right: 4px;">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Start Camera Feed
+          </button>
+          <button id="clickPhotoBtn" class="btn btn-primary" style="flex: 1; min-width: 180px; background: linear-gradient(135deg, #00D9FF 0%, #00D98E 100%); color: #000; font-weight: 900;">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display: inline-block; vertical-align: middle; margin-right: 4px;">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 001.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+              <circle cx="12" cy="13" r="4" />
+            </svg>
+            Click Photo & Detect
+          </button>
+          <button id="pauseCam" class="btn btn-secondary" style="min-width: 140px;">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display: inline-block; vertical-align: middle; margin-right: 4px;">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Stop Stream
+          </button>
         </div>
       </div>
 
@@ -323,10 +349,10 @@
 
   <!-- Footer -->
   <footer class="footer">
-    <p>Live OpenCV Detection · WastageDetection AI · Real-time Environmental Monitoring</p>
+    <p><img src="{{ url_for('static', filename='images/wastelogo.png') }}" alt="AquaVision Logo"
+        style="height: 24px; vertical-align: middle; margin-right: 10px;" /> © 2026 AquaVision AI · Live System Camera &amp; Environmental Monitoring</p>
   </footer>
 
-  <!-- Scripts -->
   <script src="{{ url_for('static', filename='js/storage-engine.js') }}"></script>
   <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 
@@ -380,6 +406,17 @@
       document.addEventListener('DOMContentLoaded', renderLiveGallery);
       setTimeout(renderLiveGallery, 300);
 
+      // Handle OpenCV Image Load Error safely without recursion
+      if (opencvVideoFeed) {
+        opencvVideoFeed.onerror = function() {
+          if (!opencvVideoFeed.getAttribute('src') || opencvVideoFeed.style.display === 'none' || currentMode !== 'opencv') return;
+          console.warn("OpenCV backend camera feed error. Switching to Demo video stream...");
+          if (window.showNotification) window.showNotification("Backend OpenCV feed unavailable. Switching to Demo stream...", "info");
+          if (cameraSourceSelect) cameraSourceSelect.value = 'demo';
+          startDemoVideoStream();
+        };
+      }
+
       function setCameraStatus(active, text = 'Standby') {
         if (!camStatusBadge || !camDot || !camStatusText) return;
         camStatusText.textContent = text;
@@ -398,8 +435,16 @@
 
       function hideAllMediaLayers() {
         stopLivePredictLoop();
-        if (opencvVideoFeed) { opencvVideoFeed.style.display = 'none'; opencvVideoFeed.src = ''; }
-        if (liveVideo) { liveVideo.style.display = 'none'; liveVideo.pause(); liveVideo.srcObject = null; }
+        if (opencvVideoFeed) {
+          opencvVideoFeed.style.display = 'none';
+          opencvVideoFeed.removeAttribute('src');
+        }
+        if (liveVideo) {
+          liveVideo.style.display = 'none';
+          liveVideo.pause();
+          liveVideo.srcObject = null;
+          liveVideo.removeAttribute('src');
+        }
         if (overlayCanvas) overlayCanvas.style.display = 'none';
         if (feedPlaceholder) feedPlaceholder.style.display = 'block';
       }
@@ -451,7 +496,7 @@
         } catch (err) {
           console.error("OpenCV Camera start error:", err);
           if (window.showNotification) window.showNotification(`OpenCV camera error: ${err.message}. Switching to Demo video stream...`, 'warning');
-          cameraSourceSelect.value = 'demo';
+          if (cameraSourceSelect) cameraSourceSelect.value = 'demo';
           startDemoVideoStream();
         }
       }
@@ -463,7 +508,17 @@
         liveVideo.src = '/detectionvideo.mp4';
         liveVideo.loop = true;
         liveVideo.muted = true;
-        await liveVideo.play();
+        liveVideo.playsInline = true;
+
+        try {
+          await liveVideo.play();
+        } catch (playErr) {
+          console.warn("Autoplay suppressed by browser. Retrying playback on click:", playErr);
+          const resumeOnGesture = () => {
+            liveVideo.play().catch(() => {});
+          };
+          document.addEventListener('click', resumeOnGesture, { once: true });
+        }
 
         currentMode = 'video';
         sessionStartTime = Date.now();
@@ -479,7 +534,17 @@
         liveVideo.src = srcUrl;
         liveVideo.loop = true;
         liveVideo.muted = true;
-        await liveVideo.play();
+        liveVideo.playsInline = true;
+
+        try {
+          await liveVideo.play();
+        } catch (playErr) {
+          console.warn("Autoplay suppressed by browser. Retrying playback on click:", playErr);
+          const resumeOnGesture = () => {
+            liveVideo.play().catch(() => {});
+          };
+          document.addEventListener('click', resumeOnGesture, { once: true });
+        }
 
         currentMode = 'video';
         sessionStartTime = Date.now();
@@ -491,6 +556,9 @@
       async function startBrowserWebcam() {
         hideAllMediaLayers();
         try {
+          if (!navigator || !navigator.mediaDevices || typeof navigator.mediaDevices.getUserMedia !== 'function') {
+            throw new Error('Browser camera API requires HTTPS or localhost context when accessing over network IP');
+          }
           const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
           feedPlaceholder.style.display = 'none';
           liveVideo.style.display = 'block';
@@ -504,9 +572,9 @@
           startLivePredictLoop();
         } catch (err) {
           console.error("Browser camera error:", err);
-          if (window.showNotification) window.showNotification('Browser camera unavailable. Switching to OpenCV camera...', 'warning');
-          cameraSourceSelect.value = 'opencv_0';
-          startOpenCVSession(0);
+          if (window.showNotification) window.showNotification(`Browser camera unavailable (${err.message}). Switching to Demo Video stream...`, 'warning');
+          if (cameraSourceSelect) cameraSourceSelect.value = 'demo';
+          startDemoVideoStream();
         }
       }
 
@@ -519,7 +587,11 @@
 
         livePredictLoopId = setInterval(async () => {
           if (isPredictingFrame || (currentMode !== 'browser' && currentMode !== 'video')) return;
-          if (!liveVideo || liveVideo.paused || liveVideo.ended || liveVideo.readyState < 2) return;
+          if (!liveVideo || liveVideo.ended || liveVideo.readyState < 2) return;
+          if (liveVideo.paused) {
+            liveVideo.play().catch(() => {});
+            return;
+          }
 
           isPredictingFrame = true;
           try {
@@ -866,9 +938,19 @@
             const res = await fetch('/api/opencv-camera/status');
             if (res.ok) {
               const data = await res.json();
-              if (data.detections && data.detections.length > 0) {
+              if (data.is_running && data.detections && data.detections.length > 0) {
                 if (detectionsList) detectionsList.innerHTML = '';
                 data.detections.forEach(det => addDetection(det.label, det.confidence));
+              } else {
+                if (detectionsList && !detectionsList.querySelector('.placeholder-msg')) {
+                  detectionsList.innerHTML = `
+                    <div class="placeholder-msg" style="margin: auto; text-align: center; color: var(--text-muted); font-size: 0.85rem; padding: 2rem 1rem;">
+                      <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="margin-bottom: 0.5rem; opacity: 0.5;">
+                        <path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                      <div>No active detections in current camera frame.</div>
+                    </div>`;
+                }
               }
             }
           } catch (e) {}

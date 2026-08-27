@@ -167,9 +167,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // 1. Trigger File Download based on type
       if (type === 'research_paper') {
-        window.location.href = '/api/export-research-paper?format=docx';
+        window.location.href = '/research-paper';
         if (window.WastageDetection && window.WastageDetection.showNotification) {
-          window.WastageDetection.showNotification('Research Paper (.docx) Download Started!', 'success');
+          window.WastageDetection.showNotification('Opening IEEE Research Paper Reader...', 'info');
         }
         return;
       } else if (type === 'csv') {

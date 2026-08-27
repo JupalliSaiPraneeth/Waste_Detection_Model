@@ -44,6 +44,20 @@ document.addEventListener('DOMContentLoaded', () => {
   renderHistory();
 });
 
+function setActiveNav() {
+  const currentPath = (window.location.pathname || '/').toLowerCase().replace(/\/+$/, '') || '/';
+  const navLinks = document.querySelectorAll('.nav-links a.nav-link');
+  navLinks.forEach(link => {
+    link.classList.remove('active');
+    const href = (link.getAttribute('href') || '').toLowerCase().replace(/\/+$/, '') || '/';
+    if (href === currentPath || 
+        (href === '/research-paper' && (currentPath === '/research-paper' || currentPath === '/research_paper')) ||
+        (currentPath !== '/' && href !== '/' && (currentPath === href || currentPath.startsWith(href)))) {
+      link.classList.add('active');
+    }
+  });
+}
+
 // ============================================================
 // THEME MANAGEMENT
 // ============================================================
@@ -1373,22 +1387,6 @@ function showNotification(msg, type = 'info') {
 // NAVIGATION
 // ============================================================
 
-function setActiveNav() {
-  const links = document.querySelectorAll('.nav-link');
-  if (!links || links.length === 0) return;
-  
-  const current = window.location.pathname.replace(/\/$/, '') || '/';
-  links.forEach(a => {
-    try {
-      const url = new URL(a.href);
-      const path = url.pathname.replace(/\/$/, '') || '/';
-      a.classList.toggle('active', path === current);
-    } catch (e) {
-      // ignore
-    }
-  });
-}
-
 // ============================================================
 // UTILITY FUNCTIONS
 // ============================================================
@@ -1397,6 +1395,44 @@ window.downloadHistoryItem = downloadHistoryItem;
 window.openDetectionModal = openDetectionModal;
 window.closeDetectionModal = closeDetectionModal;
 window.showNotification = showNotification;
+
+// ============================================================
+// AUTOMATIC VIDEO PLAYBACK HANDLER
+// ============================================================
+
+function initAppVideoPlayers() {
+  const videoElements = document.querySelectorAll('video');
+  videoElements.forEach(video => {
+    video.muted = true;
+    video.defaultMuted = true;
+    video.playsInline = true;
+    video.setAttribute('muted', '');
+    video.setAttribute('playsinline', '');
+    video.setAttribute('autoplay', '');
+
+    const playPromise = video.play();
+    if (playPromise !== undefined) {
+      playPromise.catch(err => {
+        console.warn('Autoplay prevented by browser for video:', video.id || video.src, err);
+        const playOnGesture = () => {
+          video.muted = true;
+          video.play().catch(() => {});
+        };
+        document.addEventListener('click', playOnGesture, { once: true });
+        document.addEventListener('touchstart', playOnGesture, { once: true });
+        document.addEventListener('mousemove', playOnGesture, { once: true });
+        document.addEventListener('scroll', playOnGesture, { once: true });
+      });
+    }
+  });
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initAppVideoPlayers);
+} else {
+  initAppVideoPlayers();
+}
+window.addEventListener('load', initAppVideoPlayers);
 
 // Export for external use
 window.WastageDetection = {
@@ -1407,5 +1443,6 @@ window.WastageDetection = {
   openDetectionModal,
   closeDetectionModal,
   toggleTheme,
-  loadTheme
+  loadTheme,
+  initAppVideoPlayers
 };

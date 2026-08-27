@@ -385,19 +385,9 @@ function initDropzoneAnimations() {
 // ============================================================
 
 function setActiveNav() {
-  const links = document.querySelectorAll('.nav-link');
-  if (!links || links.length === 0) return;
-  
-  const current = window.location.pathname.replace(/\/$/, '') || '/';
-  links.forEach(a => {
-    try {
-      const url = new URL(a.href);
-      const path = url.pathname.replace(/\/$/, '') || '/';
-      a.classList.toggle('active', path === current);
-    } catch (e) {
-      // ignore invalid URLs
-    }
-  });
+  if (typeof window.setActiveNav === 'function' && window.setActiveNav !== setActiveNav) {
+    window.setActiveNav();
+  }
 }
 
 // ============================================================

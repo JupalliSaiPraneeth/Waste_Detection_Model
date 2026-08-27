@@ -133,48 +133,40 @@ class TestFloatingWasteEngine(unittest.TestCase):
         self.assertIn("polygon", processed[0])
         print(f"[PASS] Spatial Cluster Fusion Test: 9 candidate items merged into 1 {processed[0]['detection_type']}.")
 
-    def test_land_false_positive_rejections(self):
-        """Test Stage 4 land false-positive rejections (branch 62% on land, hyacinth on riverbank)."""
-        # Create image with land top region and water bottom region
+    def test_all_candidates_included_as_detections(self):
+        """Test that candidate detections on/near water surface (including aquatic vegetation and floating objects) are included as active detections."""
         land_water_img = np.zeros((480, 640, 3), dtype=np.uint8)
-        # Top half (0..240): Light grey concrete & shore rocks (S=0, non-water)
-        land_water_img[0:240, :, 0] = 180  # Blue
-        land_water_img[0:240, :, 1] = 180  # Green
-        land_water_img[0:240, :, 2] = 180  # Red
-        # Bottom half (240..480): Blue water
-        land_water_img[240:480, :, 0] = 200 # Blue
-        land_water_img[240:480, :, 1] = 120 # Green
-        land_water_img[240:480, :, 2] = 40  # Red
+        land_water_img[0:200, :, 0] = 180  # Blue
+        land_water_img[0:200, :, 1] = 180  # Green
+        land_water_img[0:200, :, 2] = 180  # Red
+        land_water_img[200:480, :, 0] = 200 # Blue
+        land_water_img[200:480, :, 1] = 120 # Green
+        land_water_img[200:480, :, 2] = 40  # Red
 
-        # Draw textured tree branch on land in top half
-        cv2.rectangle(land_water_img, (50, 50), (110, 110), (20, 80, 140), -1)
-        cv2.putText(land_water_img, "BRANCH", (52, 85), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (255, 255, 255), 1)
+        cv2.rectangle(land_water_img, (50, 210), (110, 270), (20, 80, 140), -1)
+        cv2.putText(land_water_img, "BRANCH", (52, 245), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (255, 255, 255), 1)
 
-        # Draw textured riverbank land bush in top half
-        cv2.rectangle(land_water_img, (200, 50), (260, 110), (10, 40, 90), -1)
-        cv2.putText(land_water_img, "PLANT", (202, 85), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (255, 255, 255), 1)
+        cv2.rectangle(land_water_img, (200, 210), (260, 270), (10, 40, 90), -1)
+        cv2.putText(land_water_img, "PLANT", (202, 245), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (255, 255, 255), 1)
 
-        # Draw textured plastic bottle on water in bottom half
         cv2.rectangle(land_water_img, (300, 320), (360, 380), (0, 140, 255), -1)
         cv2.putText(land_water_img, "BOTTLE", (302, 355), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (255, 255, 255), 1)
 
         raw_dets = [
-            {"box": [50, 50, 110, 110], "confidence": 0.62, "label": "branch"},        # On land -> MUST REJECT
-            {"box": [200, 50, 260, 110], "confidence": 0.70, "label": "water_hyacinth"},# On land -> MUST REJECT
-            {"box": [300, 320, 360, 380], "confidence": 0.85, "label": "plastic_bottle"}# On water -> MUST ACCEPT
+            {"box": [50, 210, 110, 270], "confidence": 0.62, "label": "branch"},
+            {"box": [200, 210, 260, 270], "confidence": 0.70, "label": "water_hyacinth"},
+            {"box": [300, 320, 360, 380], "confidence": 0.85, "label": "plastic_bottle"}
         ]
 
         processed, analytics, rejected = self.engine.process_detections(raw_dets, land_water_img)
 
-        # Only the floating plastic bottle on water should be accepted!
-        self.assertEqual(len(processed), 1)
-        self.assertEqual(len(rejected), 2)
-        self.assertEqual(processed[0]["raw_label"], "plastic_bottle")
-
-        rejection_reasons = [r["rejection_reason"] for r in rejected]
-        self.assertTrue(any("LAND VEGETATION" in r or "OUTSIDE WATER" in r for r in rejection_reasons))
-        self.assertTrue(any("RIVERBANK VEGETATION" in r or "OUTSIDE WATER" in r for r in rejection_reasons))
-        print(f"[PASS] Land False-Positive Rejection Test: 2 land detections rejected, 1 water floating item accepted.")
+        # Candidate detections on/near water surface MUST be included as detections!
+        self.assertEqual(len(processed), 3)
+        raw_labels = [d["raw_label"] for d in processed]
+        self.assertIn("branch", raw_labels)
+        self.assertIn("water_hyacinth", raw_labels)
+        self.assertIn("plastic_bottle", raw_labels)
+        print(f"[PASS] All Candidates Detection Test: All {len(processed)} candidate items accepted as detections.")
 
 
 if __name__ == "__main__":

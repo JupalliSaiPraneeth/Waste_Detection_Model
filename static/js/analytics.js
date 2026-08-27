@@ -57,13 +57,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 totalConfidenceSum += confPct;
 
                 if (d.label) {
-                    let friendlyLabel = d.label;
+                    let friendlyLabel = 'Plastic Waste';
                     const l = String(d.label).toLowerCase();
-                    if (l.includes('hyacinth')) friendlyLabel = 'Water Hyacinth';
-                    else if (l.includes('plastic') || l.includes('bottle') || l.includes('bag')) friendlyLabel = 'Plastic Waste';
-                    else if (l.includes('branch') || l.includes('wood') || l.includes('grass') || l.includes('leaf')) friendlyLabel = 'Wood Debris';
-                    else if (l.includes('metal') || l.includes('box')) friendlyLabel = 'Metal & Cans';
-                    else friendlyLabel = d.label.replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+                    if (l.includes('hyacinth') || l.includes('grass')) {
+                        friendlyLabel = 'Water Hyacinth';
+                    } else if (l.includes('branch') || l.includes('wood') || l.includes('tree')) {
+                        friendlyLabel = 'Wood Debris';
+                    } else if (l.includes('metal') || l.includes('can') || l.includes('box')) {
+                        friendlyLabel = 'Metal & Cans';
+                    } else if (l.includes('glass')) {
+                        friendlyLabel = 'Glass Container';
+                    } else if (l.includes('accumulation') || l.includes('mat') || l.includes('cluster')) {
+                        friendlyLabel = 'Accumulation Region';
+                    } else if (l.includes('straw') || l.includes('cigarette')) {
+                        friendlyLabel = 'Small Debris';
+                    } else if (l.includes('plastic') || l.includes('bottle') || l.includes('bag') || l.includes('cup') || l.includes('waste') || l.includes('garbage') || l.includes('ball') || l.includes('leaf')) {
+                        friendlyLabel = 'Plastic Waste';
+                    } else {
+                        friendlyLabel = 'Other Waste';
+                    }
 
                     classCounts[friendlyLabel] = (classCounts[friendlyLabel] || 0) + 1;
                 }
@@ -173,8 +185,8 @@ document.addEventListener('DOMContentLoaded', () => {
             let pieData = Object.values(classCounts);
 
             if (pieLabels.length === 0) {
-                pieLabels = ['Plastic Waste', 'Wood Debris', 'Water Hyacinth', 'Metal & Cans', 'Other'];
-                pieData = [35, 20, 25, 12, 8];
+                pieLabels = ['Plastic Waste', 'Water Hyacinth', 'Wood Debris', 'Metal & Cans', 'Glass Container', 'Other Waste'];
+                pieData = [45, 25, 15, 8, 4, 3];
             }
 
             const totalCategorySum = pieData.reduce((a, b) => a + b, 0);
@@ -189,16 +201,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 centerTextLabel.style.color = textColor;
             }
 
-            // Category segment colors
+            // Clean category colors
             const categoryColors = {
                 'Plastic Waste': '#40C4FF',
-                'Wood Debris': '#5C6BC0',
-                'Water Hyacinth': '#EC407A',
+                'Water Hyacinth': '#66BB6A',
+                'Wood Debris': '#8D6E63',
                 'Metal & Cans': '#FFA726',
-                'Other': '#78909C'
+                'Glass Container': '#26C6DA',
+                'Accumulation Region': '#FF5252',
+                'Small Debris': '#AB47BC',
+                'Other Waste': '#78909C'
             };
 
-            const fallbackColors = ['#40C4FF', '#66BB6A', '#FFA726', '#EF5350', '#AB47BC', '#26C6DA'];
+            const fallbackColors = ['#40C4FF', '#66BB6A', '#8D6E63', '#FFA726', '#26C6DA', '#FF5252', '#AB47BC', '#78909C'];
             const bgColors = pieLabels.map((lbl, i) => categoryColors[lbl] || fallbackColors[i % fallbackColors.length]);
 
             if (pieChartInstance) pieChartInstance.destroy();
@@ -213,31 +228,33 @@ document.addEventListener('DOMContentLoaded', () => {
                             backgroundColor: bgColors,
                             borderColor: lightMode ? '#ffffff' : 'rgba(15, 23, 42, 0.9)',
                             borderWidth: 2,
-                            hoverOffset: 16
+                            hoverOffset: 12
                         }]
                     },
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
-                        cutout: '58%',
+                        cutout: '62%',
                         rotation: -90,
                         circumference: 360,
                         animation: {
                             animateRotate: true,
                             animateScale: true,
-                            duration: 1500,
+                            duration: 1200,
                             easing: 'easeOutQuart'
                         },
                         plugins: {
                             legend: {
                                 display: true,
                                 position: 'bottom',
+                                maxHeight: 95,
                                 labels: {
-                                    font: { family: "'Inter', sans-serif", size: 12, weight: '700' },
+                                    font: { family: "'Inter', sans-serif", size: 11, weight: '700' },
                                     color: textColor,
-                                    padding: 14,
+                                    padding: 10,
+                                    boxWidth: 10,
                                     usePointStyle: true,
-                                    pointStyleWidth: 10
+                                    pointStyleWidth: 8
                                 }
                             },
                             tooltip: {

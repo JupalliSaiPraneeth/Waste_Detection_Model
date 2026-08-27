@@ -811,22 +811,30 @@
 
     <div class="toolbar-group">
       <a id="exportDocxLink" href="/api/export-research-paper?format=docx&model={{ selected_model_id }}"
-        class="toolbar-btn btn-docx">
+        class="toolbar-btn btn-docx" title="Download Word (.docx) manuscript">
         <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
           <polyline points="14 2 14 8 20 8" />
           <line x1="16" y1="13" x2="8" y2="13" />
           <line x1="16" y1="17" x2="8" y2="17" />
         </svg>
-        <span>Export Word</span>
+        <span>Download Word (.docx)</span>
       </a>
-      <button class="toolbar-btn btn-pdf" id="printPdfBtn" onclick="window.print()">
+      <a id="exportTexLink" href="/api/export-research-paper?format=tex&model={{ selected_model_id }}"
+        class="toolbar-btn ghost" title="Download LaTeX (.tex) manuscript">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+          <polyline points="14 2 14 8 20 8" />
+        </svg>
+        <span>Download LaTeX (.tex)</span>
+      </a>
+      <button class="toolbar-btn btn-pdf" id="printPdfBtn" onclick="window.print()" title="Print or Save PDF">
         <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <polyline points="6 9 6 2 18 2 18 9" />
           <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
           <rect x="6" y="14" width="12" height="8" />
         </svg>
-        <span>Export PDF</span>
+        <span>Download / Print PDF</span>
       </button>
       <button class="toolbar-btn btn-bibtex" id="copyBibtexBtn">
         <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -1374,22 +1382,20 @@
           </div>
         </section>
 
-        <!-- Section 10: Comparative & Ablation -->
+        <!-- Section 10: Systematic Ablation Study & Performance Profile -->
         <section id="sec-10" class="paper-section">
-          <h2 class="section-heading">10. Comparative Analysis & Systematic Ablation Study</h2>
+          <h2 class="section-heading">10. Systematic Ablation Study & Performance Profile — {{ model_analytics.model_name }}</h2>
           <p class="paper-paragraph">
-            We perform a comprehensive comparative analysis across all registered vision architectures in the
-            <strong>HydraClean</strong> ecosystem, followed by systematic ablation experiments isolating data
-            augmentation and confidence threshold impact.
+            Systematic evaluation and ablation experiments isolating the performance metrics, data augmentation impact, and confidence threshold sensitivity for <strong>{{ model_analytics.model_name }}</strong>.
           </p>
 
-          <h3 style="font-size: 1.1rem; color: var(--heading-color); margin: 1.5rem 0 0.5rem;">10.1 Multi-Model
-            Benchmark Comparison Matrix</h3>
+          <h3 style="font-size: 1.1rem; color: var(--heading-color); margin: 1.5rem 0 0.5rem;">10.1 Selected Model Performance Summary — {{ model_analytics.model_name }}</h3>
           <div class="full-width-element">
             <table class="paper-table">
               <thead>
                 <tr>
-                  <th>Model Architecture</th>
+                  <th>Model Name</th>
+                  <th>Architecture</th>
                   <th>Precision</th>
                   <th>Recall</th>
                   <th>mAP@0.5</th>
@@ -1401,40 +1407,18 @@
                 </tr>
               </thead>
               <tbody>
-                {% if per_model_analytics %}
-                {% for m_key, m_val in per_model_analytics.items() %}
-                <tr {% if m_key==selected_model_id
-                  %}style="background: rgba(0, 217, 255, 0.15); font-weight: 800; border-left: 4px solid var(--paper-accent);"
-                  {% endif %}>
-                  <td>
-                    <strong>{{ m_val.model_name }}</strong>
-                    {% if m_key == selected_model_id %}<span class="journal-tag"
-                      style="margin-left: 0.4rem; font-size: 0.68rem; padding: 0.1rem 0.4rem;">SELECTED</span>{% endif
-                    %}
-                  </td>
-                  <td>{{ m_val.precision }}</td>
-                  <td>{{ m_val.recall }}</td>
-                  <td><strong>{{ m_val.map_50 }}</strong></td>
-                  <td>{{ m_val.map_50_95 }}</td>
-                  <td>{{ m_val.f1_score }}</td>
-                  <td>{{ m_val.latency }}</td>
-                  <td>{{ m_val.fps }}</td>
-                  <td>{{ m_val.model_size }}</td>
-                </tr>
-                {% endfor %}
-                {% else %}
-                <tr style="background: rgba(0, 217, 255, 0.15); font-weight: 800;">
+                <tr style="background: rgba(0, 217, 255, 0.15); font-weight: 800; border-left: 4px solid var(--paper-accent);">
                   <td><strong>{{ model_analytics.model_name }}</strong></td>
+                  <td>{{ model_analytics.architecture }}</td>
                   <td>{{ model_analytics.precision }}</td>
                   <td>{{ model_analytics.recall }}</td>
-                  <td>{{ model_analytics.map_50 }}</td>
+                  <td><strong>{{ model_analytics.map_50 }}</strong></td>
                   <td>{{ model_analytics.map_50_95 }}</td>
                   <td>{{ model_analytics.f1_score }}</td>
                   <td>{{ model_analytics.latency }}</td>
                   <td>{{ model_analytics.fps }}</td>
                   <td>{{ model_analytics.model_size }}</td>
                 </tr>
-                {% endif %}
               </tbody>
             </table>
           </div>
@@ -1890,177 +1874,96 @@
         const confCtx = document.getElementById('paperConfidenceChart');
         if (!catCtx || !confCtx) return;
 
-        const currentModelId = '{{ selected_model_id }}';
-        const modelName = '{{ model_analytics.model_name }}';
-        const defaultDatasetSize = '{{ model_analytics.val_dataset_size }}';
-        const defaultAvgPrecision = '{{ model_analytics.precision }}';
+        {% if model_analytics and model_analytics.class_freq_histogram %}
+        const catLabels = {{ model_analytics.class_freq_histogram.labels | tojson }};
+        const catValues = {{ model_analytics.class_freq_histogram.data | tojson }};
+        {% else %}
+        const catLabels = ['Water Hyacinth', 'Plastic Bottle', 'Plastic Bag', 'Wood & Debris', 'Other Waste', 'Metal Can'];
+        const catValues = [2100, 1840, 1620, 1120, 980, 850];
+        {% endif %}
 
-        let history = [];
-        if (window.StorageEngine && typeof window.StorageEngine.getDetectionHistory === 'function') {
-          history = window.StorageEngine.getDetectionHistory();
-        } else {
-          try {
-            const raw = localStorage.getItem('wasteDetectHistory');
-            if (raw) history = JSON.parse(raw);
-          } catch (e) {
-            console.error('Error reading wasteDetectHistory from localStorage:', e);
-          }
+        {% if model_analytics and model_analytics.confidence_histogram %}
+        const confLabels = {{ model_analytics.confidence_histogram.labels | tojson }};
+        const confValues = {{ model_analytics.confidence_histogram.data | tojson }};
+        {% else %}
+        const confLabels = ['< 70%', '70–80%', '80–90%', '90–95%', '95–100%'];
+        const confValues = [20, 65, 210, 580, 845];
+        {% endif %}
+
+        const catBadge = document.getElementById('paperCatBadge');
+        if (catBadge) {
+          catBadge.textContent = '{{ model_analytics.val_dataset_size }}';
+        }
+        const confBadge = document.getElementById('paperConfBadge');
+        if (confBadge) {
+          confBadge.textContent = 'Avg {{ model_analytics.precision }} Conf';
         }
 
-        // Strict filter for selected model
-        const matchedDetections = history.filter(item => {
-          if (!item) return false;
-          let mKey = '';
-          if (window.StorageEngine && typeof window.StorageEngine.getModelEvalMetrics === 'function') {
-            const metrics = window.StorageEngine.getModelEvalMetrics(item);
-            mKey = metrics ? (metrics.model_id || '') : '';
-          }
-          const rawId = (item.model_id || item.model_name || '').toLowerCase();
+        if (paperCatChartInstance) paperCatChartInstance.destroy();
+        if (paperConfChartInstance) paperConfChartInstance.destroy();
 
-          if (currentModelId === 'rt_detr') {
-            return mKey === 'rt_detr' || rawId.includes('detr') || rawId.includes('rtdetr') || rawId === 'best_pt';
-          } else if (currentModelId === 'v2') {
-            return mKey === 'v2' || (rawId.includes('v2') && !rawId.includes('detr')) || (rawId.includes('yolov8') && !rawId.includes('detr')) || rawId === 'v2_best_pt';
-          } else if (currentModelId === 'taco_fasterrcnn') {
-            return mKey === 'taco_fasterrcnn' || rawId.includes('taco') || rawId.includes('fasterrcnn') || rawId.includes('30epochs');
-          } else if (currentModelId === 'mixed') {
-            return mKey === 'mixed' || rawId.includes('mixed') || rawId.includes('ensemble');
+        // Render Category Frequency Chart for Selected Model Only
+        paperCatChartInstance = new Chart(catCtx, {
+          type: 'bar',
+          data: {
+            labels: catLabels,
+            datasets: [{
+              label: 'Detection Instances',
+              data: catValues,
+              backgroundColor: [
+                'rgba(0, 217, 142, 0.75)',
+                'rgba(0, 217, 255, 0.75)',
+                'rgba(167, 139, 250, 0.75)',
+                'rgba(255, 183, 0, 0.75)',
+                'rgba(244, 63, 94, 0.75)',
+                'rgba(56, 189, 248, 0.75)',
+                'rgba(168, 85, 247, 0.75)',
+                'rgba(236, 72, 153, 0.75)'
+              ],
+              borderColor: [
+                '#00D98E', '#00D9FF', '#A78BFA', '#FFB700', '#F43F5E', '#38BDF8', '#A855F7', '#EC4899'
+              ],
+              borderWidth: 1.5,
+              borderRadius: 6
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 10, weight: '600' } } },
+              y: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#94a3b8' } }
+            }
           }
-          return mKey === currentModelId || rawId.includes(currentModelId);
         });
 
-        let catLabels = [];
-        let catValues = [];
-        let confLabels = ['< 70%', '70–80%', '80–90%', '90–95%', '95–100%'];
-        let confValues = [0, 0, 0, 0, 0];
-        let totalDetectionsCount = 0;
-        let avgConfCalc = null;
-
-        const hasLocalStorageData = matchedDetections.some(item => item.detections && item.detections.length > 0);
-
-        if (hasLocalStorageData) {
-          const categoryCounts = {};
-          const confBins = { '< 70%': 0, '70–80%': 0, '80–90%': 0, '90–95%': 0, '95–100%': 0 };
-          let totalConfSum = 0;
-
-          matchedDetections.forEach(entry => {
-            (entry.detections || []).forEach(d => {
-              totalDetectionsCount++;
-              let lbl = (d.label || 'Other Waste').trim();
-              lbl = lbl.split(/[-_]/).map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
-              categoryCounts[lbl] = (categoryCounts[lbl] || 0) + 1;
-
-              const rawConf = d.confidence || 0;
-              const confPct = rawConf <= 1 ? rawConf * 100 : rawConf;
-              totalConfSum += confPct;
-
-              if (confPct < 70) confBins['< 70%']++;
-              else if (confPct < 80) confBins['70–80%']++;
-              else if (confPct < 90) confBins['80–90%']++;
-              else if (confPct < 95) confBins['90–95%']++;
-              else confBins['95–100%']++;
-            });
-          });
-
-          catLabels = Object.keys(categoryCounts);
-          catValues = Object.values(categoryCounts);
-          confLabels = Object.keys(confBins);
-          confValues = Object.values(confBins);
-          if (totalDetectionsCount > 0) {
-            avgConfCalc = (totalConfSum / totalDetectionsCount).toFixed(1) + '%';
+        // Render Confidence Distribution Chart for Selected Model Only
+        paperConfChartInstance = new Chart(confCtx, {
+          type: 'doughnut',
+          data: {
+            labels: confLabels,
+            datasets: [{
+              data: confValues,
+              backgroundColor: [
+                '#F43F5E',
+                '#FFB700',
+                '#38BDF8',
+                '#00D9FF',
+                '#00D98E'
+              ],
+              borderWidth: 0
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 11, weight: '600' } } }
+            },
+            cutout: '70%'
           }
-        } else {
-          {% if model_analytics and model_analytics.class_freq_histogram %}
-          catLabels = {{ model_analytics.class_freq_histogram.labels | tojson }};
-          catValues = {{ model_analytics.class_freq_histogram.data | tojson }};
-          {% else %}
-          catLabels = ['Water Hyacinth', 'Plastic Bottle', 'Plastic Bag', 'Wood & Debris', 'Other Waste', 'Metal Can'];
-          catValues = [2100, 1840, 1620, 1120, 980, 850];
-          {% endif %}
-
-          {% if model_analytics and model_analytics.confidence_histogram %}
-          confLabels = {{ model_analytics.confidence_histogram.labels | tojson }};
-          confValues = {{ model_analytics.confidence_histogram.data | tojson }};
-          {% else %}
-          confLabels = ['< 70%', '70–80%', '80–90%', '90–95%', '95–100%'];
-          confValues = [20, 65, 210, 580, 845];
-          {% endif %}
-        }
-
-    const catBadge = document.getElementById('paperCatBadge');
-    if (catBadge) {
-      catBadge.textContent = hasLocalStorageData ? `${totalDetectionsCount} Telemetry Objects` : defaultDatasetSize;
-    }
-    const confBadge = document.getElementById('paperConfBadge');
-    if (confBadge) {
-      confBadge.textContent = avgConfCalc ? `Avg ${avgConfCalc} Conf` : `Avg ${defaultAvgPrecision} Conf`;
-    }
-
-    if (paperCatChartInstance) paperCatChartInstance.destroy();
-    if (paperConfChartInstance) paperConfChartInstance.destroy();
-
-    // Render Category Frequency Chart
-    paperCatChartInstance = new Chart(catCtx, {
-      type: 'bar',
-      data: {
-        labels: catLabels,
-        datasets: [{
-          label: 'Detection Instances',
-          data: catValues,
-          backgroundColor: [
-            'rgba(0, 217, 142, 0.75)',
-            'rgba(0, 217, 255, 0.75)',
-            'rgba(167, 139, 250, 0.75)',
-            'rgba(255, 183, 0, 0.75)',
-            'rgba(244, 63, 94, 0.75)',
-            'rgba(56, 189, 248, 0.75)',
-            'rgba(168, 85, 247, 0.75)',
-            'rgba(236, 72, 153, 0.75)'
-          ],
-          borderColor: [
-            '#00D98E', '#00D9FF', '#A78BFA', '#FFB700', '#F43F5E', '#38BDF8', '#A855F7', '#EC4899'
-          ],
-          borderWidth: 1.5,
-          borderRadius: 6
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: {
-          x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 10, weight: '600' } } },
-          y: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#94a3b8' } }
-        }
-      }
-    });
-
-    // Render Confidence Distribution Chart
-    paperConfChartInstance = new Chart(confCtx, {
-      type: 'doughnut',
-      data: {
-        labels: confLabels,
-        datasets: [{
-          data: confValues,
-          backgroundColor: [
-            '#F43F5E',
-            '#FFB700',
-            '#38BDF8',
-            '#00D9FF',
-            '#00D98E'
-          ],
-          borderWidth: 0
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 11, weight: '600' } } }
-        },
-        cutout: '70%'
-      }
-    });
+        });
       }
 
     renderSection9Charts();

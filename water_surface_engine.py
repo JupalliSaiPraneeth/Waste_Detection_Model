@@ -14,8 +14,8 @@ import cv2
 
 class WaterSurfaceDetector:
     """
-    Analyzes image color (HSV/Lab) and texture gradients to segment
-    the water body surface mask and extract water coverage metrics.
+    Analyzes image color (HSV/Lab), texture gradients, and non-aquatic semantics
+    (human faces, document/poster text, stone carvings) to segment the water body mask.
     """
 
     @staticmethod
@@ -27,61 +27,94 @@ class WaterSurfaceDetector:
         h, w = img_bgr.shape[:2]
         total_pixels = float(h * w)
 
-        # 1. Convert to HSV and Lab color spaces
+        # 1. Convert to HSV, Lab color spaces, and grayscale
         hsv = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2HSV)
         lab = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2LAB)
+        gray = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)
 
-        # Extract HSV channels
-        h_channel, s_channel, v_channel = cv2.split(hsv)
-        l_channel, a_channel, b_channel = cv2.split(lab)
+        # 2. Check for Non-Aquatic Semantic Features: Human Faces & Document/Poster Text
+        has_human_face = False
+        try:
+            cascade_path = cv2.data.haarcascades + 'haarcascade_frontalface_default.xml'
+            face_cascade = cv2.CascadeClassifier(cascade_path)
+            gray_small = cv2.resize(gray, (0, 0), fx=0.5, fy=0.5) if (h > 400 or w > 400) else gray
+            faces = face_cascade.detectMultiScale(gray_small, scaleFactor=1.1, minNeighbors=3, minSize=(18, 18))
+            if len(faces) > 0:
+                has_human_face = True
+        except Exception:
+            pass
 
-        # 2. Water detection heuristic:
-        # Water bodies generally have distinct hue ranges (blue, cyan, green, brownish water),
-        # low-to-moderate saturation, and smooth local texture gradient.
-        # We define a broad water mask based on color + edge density.
+        # Document/Poster check: High concentration of text lines & white/cream paper background
+        is_document_poster = False
+        paper_bg = cv2.inRange(img_bgr, np.array([200, 200, 200]), np.array([255, 255, 255]))
+        paper_pct = (np.count_nonzero(paper_bg) / total_pixels) * 100.0
+        if paper_pct > 25.0:
+            is_document_poster = True
 
-        # Color range 1: Blue/Cyan/Greenish water (Hue 35 - 135 in OpenCV 0-180 scale)
-        water_color1 = cv2.inRange(hsv, np.array([35, 10, 20]), np.array([135, 255, 245]))
-        
-        # Color range 2: Murky / Dark / Reflective water (Low saturation, low-to-medium brightness)
-        water_color2 = cv2.inRange(hsv, np.array([0, 0, 15]), np.array([180, 110, 220]))
+        # 3. Water detection heuristics:
+        # Aquatic water (blue, cyan, turquoise, aquamarine, green water)
+        water_color1 = cv2.inRange(hsv, np.array([35, 20, 20]), np.array([135, 255, 250]))
+
+        # Count true aquatic hue pixels (blue/cyan/green/aquamarine)
+        aquatic_hue_px = float(np.count_nonzero(water_color1))
+        aquatic_hue_pct = (aquatic_hue_px / total_pixels) * 100.0
+
+        # Muddy / Brownish river water (Hue 10 - 28)
+        water_color2 = cv2.inRange(hsv, np.array([10, 45, 25]), np.array([28, 200, 210]))
 
         # Combine candidate water regions
         candidate_water = cv2.bitwise_or(water_color1, water_color2)
 
-        # 3. Edge density analysis:
-        # Water surface generally has low edge density compared to cluttered land/trees/buildings.
-        gray = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)
-        blur = cv2.GaussianBlur(gray, (5, 5), 0)
-        edges = cv2.Canny(blur, 30, 100)
+        # 4. Lab Color Space Warm Earth Tone Filtering:
+        # Human skin tones, brown studio backdrops, wooden chairs, tan clothing, and sandstone
+        # possess strong reddish-yellowish chroma (a > 129 and b > 131 in OpenCV Lab scale).
+        warm_earth_mask = cv2.inRange(lab, np.array([0, 129, 131]), np.array([255, 255, 255]))
+        candidate_water = cv2.bitwise_and(candidate_water, cv2.bitwise_not(warm_earth_mask))
 
-        # Dilate edges to identify high-texture non-water regions
-        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (7, 7))
+        # 4. Edge density analysis:
+        # Water surface generally has low edge density compared to cluttered land/stone carvings/buildings/foliage/text.
+        blur = cv2.GaussianBlur(gray, (5, 5), 0)
+        edges = cv2.Canny(blur, 25, 80)
+
+        # Dilate edges to identify high-texture non-water regions (carved stone reliefs, human hair, clothes, text)
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (11, 11))
         high_texture = cv2.dilate(edges, kernel, iterations=2)
 
-        # Refine water mask: Keep candidate water that is not high-texture land
+        # Refine water mask: Keep candidate water that is not high-texture land/architecture
         water_mask = cv2.bitwise_and(candidate_water, cv2.bitwise_not(high_texture))
 
-        # 4. Morphological clean-up
-        close_kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (15, 15))
-        open_kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (9, 9))
+        # 5. Morphological clean-up
+        close_kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (19, 19))
+        open_kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (11, 11))
 
         water_mask = cv2.morphologyEx(water_mask, cv2.MORPH_CLOSE, close_kernel)
         water_mask = cv2.morphologyEx(water_mask, cv2.MORPH_OPEN, open_kernel)
 
-        # If water mask is too small or failed due to unusual lighting, fallback to full image
         water_pixel_count = float(np.count_nonzero(water_mask))
         water_pct = round((water_pixel_count / total_pixels) * 100.0, 1)
 
-        if water_pct < 10.0:
-            # Fallback mask covering central region
-            water_mask = np.ones((h, w), dtype=np.uint8) * 255
-            water_pct = 100.0
+        # Strict Non-Aquatic Validation Rule:
+        # A valid water scene MUST have at least 1.5% true aquatic hue (blue/cyan/green water)
+        # OR at least 12.0% water surface coverage without human faces or document paper backgrounds.
+        # Human portraits, ID photos, posters, documents, and dry stone carvings possess 0% aquatic hue.
+        if has_human_face or is_document_poster:
+            has_water_surface = (aquatic_hue_pct >= 2.5)  # Require clear aquatic water if a person/text is present
+        else:
+            has_water_surface = (aquatic_hue_pct >= 1.2 or water_pct >= 10.0)
+
+        if not has_water_surface:
+            water_mask = np.zeros((h, w), dtype=np.uint8)
+            water_pct = 0.0
+            water_pixel_count = 0.0
 
         metrics = {
             "water_area_px": int(water_pixel_count),
             "water_surface_pct": water_pct,
-            "total_pixels": int(total_pixels)
+            "total_pixels": int(total_pixels),
+            "has_water_surface": has_water_surface,
+            "aquatic_hue_pct": round(aquatic_hue_pct, 1),
+            "has_human_face": has_human_face,
+            "is_document_poster": is_document_poster
         }
 
         return water_mask, metrics
@@ -122,7 +155,7 @@ class FloatingWasteEngine:
     and unknown floating waste detection.
     """
 
-    def __init__(self, conf_low: float = 0.40, conf_high: float = 0.60):
+    def __init__(self, conf_low: float = 0.08, conf_high: float = 0.50):
         self.conf_low = conf_low
         self.conf_high = conf_high
         self.water_detector = WaterSurfaceDetector()
@@ -132,7 +165,7 @@ class FloatingWasteEngine:
         raw_detections: list[dict],
         img_bgr: np.ndarray,
         is_class_agnostic: bool = True
-    ) -> tuple[list[dict], dict]:
+    ) -> tuple[list[dict], dict, list[dict]]:
         """
         Filters and transforms raw model detections against the water surface mask,
         removing environmental false positives and applying class-agnostic / confidence tiering.
@@ -144,10 +177,49 @@ class FloatingWasteEngine:
         water_mask, water_metrics = self.water_detector.detect_water_mask(img_bgr)
         water_area_px = water_metrics["water_area_px"]
         water_surface_pct = water_metrics["water_surface_pct"]
+        has_water_surface = water_metrics.get("has_water_surface", water_surface_pct >= 3.0)
 
         processed_dets = []
         rejected_detections = []
         waste_area_px = 0
+
+        # CRITICAL RULE: Non-Aquatic Scene Guard
+        # Floating waste CAN ONLY exist on water bodies. If no water surface is present in the image
+        # (e.g. non-water photo like stone carvings, rooms, dry land, buildings, desert),
+        # ALL raw candidate detections are non-water false positives and MUST be rejected!
+        if not has_water_surface and water_surface_pct < 3.0:
+            for idx, det in enumerate(raw_detections, 1):
+                box = det.get('box', [0, 0, 0, 0])
+                conf = det.get('confidence', 0.0)
+                raw_label = det.get('label', 'Floating Object')
+                rejected_detections.append({
+                    "box": box,
+                    "raw_label": raw_label,
+                    "confidence": conf,
+                    "water_overlap_score": 0.0,
+                    "rejection_reason": "REJECTED - NO WATER SURFACE DETECTED IN SCENE (NON-AQUATIC IMAGE)"
+                })
+
+            analytics_summary = {
+                "water_surface_pct": 0.0,
+                "waste_coverage_pct": 0.0,
+                "clean_water_pct": 100.0,
+                "floating_waste_status": "No Floating Waste Detected",
+                "status_code": "CLEAN",
+                "status_color": "#00D98E",
+                "total_objects": 0,
+                "high_confidence_count": 0,
+                "possible_count": 0,
+                "accumulation_count": 0,
+                "cluster_count": 0,
+                "rejected_count": len(rejected_detections),
+                "accepted_count": 0
+            }
+            return [], analytics_summary, rejected_detections
+
+        # Create dilated water mask to cover water surface up to the perimeter of floating objects
+        water_dilated_kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (31, 31))
+        water_mask_dilated = cv2.dilate(water_mask, water_dilated_kernel, iterations=1)
 
         for idx, det in enumerate(raw_detections, 1):
             box = det.get('box', [0, 0, 0, 0])
@@ -166,10 +238,17 @@ class FloatingWasteEngine:
             conf = det.get('confidence', 0.0)
             raw_label = det.get('label', 'Floating Object')
 
-            # Calculate Stage 4 Water-Overlap Score (intersection with water mask / box area)
-            box_water_crop = water_mask[y1:y2, x1:x2]
+            # Expand box by 15% perimeter margin to check surrounding water body ROI
+            margin_x = max(10, int(bw * 0.15))
+            margin_y = max(10, int(bh * 0.15))
+            x1_exp, y1_exp = max(0, x1 - margin_x), max(0, y1 - margin_y)
+            x2_exp, y2_exp = min(img_w, x2 + margin_x), min(img_h, y2 + margin_y)
+            exp_area = (x2_exp - x1_exp) * (y2_exp - y1_exp)
+
+            # Calculate Water-Overlap Score against dilated water mask
+            box_water_crop = water_mask_dilated[y1_exp:y2_exp, x1_exp:x2_exp]
             water_intersection_px = np.count_nonzero(box_water_crop)
-            water_overlap_score = round(water_intersection_px / float(box_area), 2) if box_area > 0 else 0.0
+            water_overlap_score = round(water_intersection_px / float(exp_area), 2) if exp_area > 0 else 0.0
 
             # Ignore whole-canvas background bounding boxes (> 60% of image)
             if box_area >= 0.60 * img_area:
@@ -182,7 +261,7 @@ class FloatingWasteEngine:
                 })
                 continue
 
-            # Stage 4 Rule 1: Confidence Threshold Check (< 0.40 ignored)
+            # Confidence Threshold Check (< conf_low ignored)
             if conf < self.conf_low:
                 rejected_detections.append({
                     "box": [x1, y1, x2, y2],
@@ -193,70 +272,14 @@ class FloatingWasteEngine:
                 })
                 continue
 
-            # Stage 4 Rule 2: Land-Based Specific Class Rejections
+            # Stage 6: Class-Agnostic / Unknown Object Handling (All candidate detections included)
             l_lower = raw_label.lower()
-            if any(k in l_lower for k in ['branch', 'tree', 'rock', 'shore', 'pipe', 'bridge', 'building', 'soil', 'land']) and water_overlap_score < 0.50:
-                rejected_detections.append({
-                    "box": [x1, y1, x2, y2],
-                    "raw_label": raw_label,
-                    "confidence": conf,
-                    "water_overlap_score": water_overlap_score,
-                    "rejection_reason": f"REJECTED - LAND VEGETATION/STRUCTURE (Overlap: {int(water_overlap_score*100)}%)"
-                })
-                continue
-
-            cx, cy = (x1 + x2) // 2, (y1 + y2) // 2
-            center_is_water = (water_mask[min(img_h - 1, max(0, cy)), min(img_w - 1, max(0, cx))] > 0)
-
-            # Stage 4 Rule 3: Riverbank Vegetation Rejection (Hyacinth / Grass on land)
-            if any(k in l_lower for k in ['hyacinth', 'grass', 'plant', 'bush']) and water_overlap_score < 0.40:
-                rejected_detections.append({
-                    "box": [x1, y1, x2, y2],
-                    "raw_label": raw_label,
-                    "confidence": conf,
-                    "water_overlap_score": water_overlap_score,
-                    "rejection_reason": f"REJECTED - RIVERBANK VEGETATION (Overlap: {int(water_overlap_score*100)}%)"
-                })
-                continue
-
-            # Stage 4 Rule 4: General Water-Surface ROI Spatial Validation
-            pad = 35
-            ex1, ey1 = max(0, x1 - pad), max(0, y1 - pad)
-            ex2, ey2 = min(img_w, x2 + pad), min(img_h, y2 + pad)
-            expanded_water_crop = water_mask[ey1:ey2, ex1:ex2]
-            expanded_area = float((ex2 - ex1) * (ey2 - ey1))
-            water_pixels_in_vicinity = np.count_nonzero(expanded_water_crop)
-            vicinity_water_ratio = water_pixels_in_vicinity / expanded_area if expanded_area > 0 else 0
-
-            is_valid_water_object = (water_overlap_score >= 0.15) or center_is_water or (vicinity_water_ratio >= 0.08) or (water_surface_pct >= 35.0)
-
-            if not is_valid_water_object:
-                rejected_detections.append({
-                    "box": [x1, y1, x2, y2],
-                    "raw_label": raw_label,
-                    "confidence": conf,
-                    "water_overlap_score": water_overlap_score,
-                    "rejection_reason": f"REJECTED - OUTSIDE WATER ROI (Overlap: {int(water_overlap_score*100)}%)"
-                })
-                continue
-
-            # Stage 5: Environmental Artifact Filtering (Sun Glare, Reflections, Wave Ripples)
-            crop_bgr = img_bgr[y1:y2, x1:x2]
-            if self.water_detector.is_environmental_false_positive(crop_bgr):
-                rejected_detections.append({
-                    "box": [x1, y1, x2, y2],
-                    "raw_label": raw_label,
-                    "confidence": conf,
-                    "water_overlap_score": water_overlap_score,
-                    "rejection_reason": "REJECTED - SUN GLARE / WAVE RIPPLE ARTIFACT"
-                })
-                continue
-
-            # Stage 6: Class-Agnostic / Unknown Object Handling
             if is_class_agnostic:
-                known_keywords = ['plastic', 'bottle', 'can', 'cup', 'bag', 'hyacinth', 'styrofoam', 'wood', 'garbage', 'debris', 'tire', 'container']
+                known_keywords = ['plastic', 'bottle', 'can', 'cup', 'bag', 'hyacinth', 'styrofoam', 'wood', 'garbage', 'debris', 'tire', 'container', 'branch', 'tree', 'plant']
                 if any(k in l_lower for k in ['unknown', 'target', 'object', 'item', 'other', 'unseen', 'debris_unknown']):
                     label = "Unknown Floating Waste"
+                elif l_lower in ['floating_waste', 'floating waste', 'waste', 'trash']:
+                    label = "Floating Waste"
                 elif any(k in l_lower for k in known_keywords):
                     label = f"Floating Waste ({raw_label})"
                 else:
