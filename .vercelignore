@@ -1,0 +1,10 @@
+venv/
+__pycache__/
+*.pyc
+static/uploads/*
+!static/uploads/.gitkeep
+static/results/*
+!static/results/.gitkeep
+temp_frame.jpg
+detectionvideo.mp4
+RT_DETR_Research_Paper.pdf
