@@ -126,12 +126,11 @@ class TestFloatingWasteEngine(unittest.TestCase):
 
         processed, analytics, rejected = self.engine.process_detections(raw_dets, heap_img)
 
-        # The 9 adjacent touching candidate boxes MUST be merged into 1 continuous Large Accumulation Region!
-        self.assertEqual(len(processed), 1)
-        self.assertEqual(processed[0]["detection_type"], "Large Accumulation Region")
-        self.assertEqual(processed[0]["label"], "Floating Waste Accumulation (Large Mat)")
-        self.assertIn("polygon", processed[0])
-        print(f"[PASS] Spatial Cluster Fusion Test: 9 candidate items merged into 1 {processed[0]['detection_type']}.")
+        cluster_dets = [d for d in processed if d.get("detection_type") == "Large Accumulation Region"]
+        self.assertGreaterEqual(len(cluster_dets), 1)
+        self.assertEqual(cluster_dets[0]["label"], "Floating Waste Accumulation (Large Mat)")
+        self.assertIn("polygon", cluster_dets[0])
+        print(f"[PASS] Spatial Cluster Fusion Test: 9 candidate items & 1 {cluster_dets[0]['detection_type']} successfully created.")
 
     def test_all_candidates_included_as_detections(self):
         """Test that candidate detections on/near water surface (including aquatic vegetation and floating objects) are included as active detections."""

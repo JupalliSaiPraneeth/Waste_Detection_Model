@@ -325,7 +325,18 @@ class FloatingWasteEngine:
 
         # Stage 6 & 7: Spatial Proximity Clustering & Region Mask Extraction
         clustered_dets = FloatingWasteClusterer.cluster_and_segment(processed_dets, img_bgr, water_mask, proximity_dist=35)
-        final_dets = clustered_dets if clustered_dets else processed_dets
+
+        # Preserve both individual item detections AND large spatial clusters (matching high-recall Photo 2 detection quality)
+        existing_boxes = [d["box"] for d in processed_dets]
+        additional_clusters = []
+        for cd in clustered_dets:
+            # Add cluster box if it represents a large accumulation or non-overlapping region
+            cb = cd["box"]
+            is_duplicate = any(abs(cb[0]-eb[0]) < 15 and abs(cb[1]-eb[1]) < 15 and abs(cb[2]-eb[2]) < 15 and abs(cb[3]-eb[3]) < 15 for eb in existing_boxes)
+            if not is_duplicate:
+                additional_clusters.append(cd)
+
+        final_dets = processed_dets + additional_clusters
 
         # Calculate Stage 8 Analytics Summary
         total_waste_area_px = sum(d.get("area", 0) for d in final_dets)
@@ -440,48 +451,49 @@ class FloatingWasteClusterer:
             actual_waste_area = sum(c["area"] for c in constituents)
             rel_pct = round((total_cluster_area / img_area) * 100.0, 1)
 
-            # Determine Detection Type & Label Hierarchy
-            if rel_pct >= 6.0 or len(constituents) >= 4:
-                detection_type = "Large Accumulation Region"
-                label = "Floating Waste Accumulation (Large Mat)"
-                status_color = "#FF3B30"
-                conf_tier = "High Confidence"
-            elif len(constituents) >= 2 or (rel_pct >= 3.0 and len(constituents) >= 2):
-                detection_type = "Floating Cluster"
-                label = "Floating Waste Cluster"
-                status_color = "#FF8C00"
-                conf_tier = "High Confidence" if max_conf >= 0.60 else "Possible"
-            else:
-                detection_type = "Single Object"
-                first_label = constituents[0].get("label", "Floating Waste")
-                label = first_label
-                status_color = "#FF3B30" if max_conf >= 0.60 else "#FFB700"
-                conf_tier = "High Confidence" if max_conf >= 0.60 else "Possible"
+            if len(constituents) >= 2:
+                # 1. Retain fine-grained individual item detections (bottle, straw, glass, bag)
+                for c_item in constituents:
+                    if not any(d.get("id") == c_item.get("id") for d in clustered_dets):
+                        clustered_dets.append(c_item)
 
-            obj_id = f"FW-{idx:03d}"
-            clustered_dets.append({
-                "id": obj_id,
-                "obj_id": obj_id,
-                "box": [x1, y1, x2, y2],
-                "box_str": f"{x1},{y1} | {w}×{h}",
-                "x": x1,
-                "y": y1,
-                "w": w,
-                "h": h,
-                "area": actual_waste_area,
-                "area_str": f"{actual_waste_area:,} px² ({rel_pct:.1f}%)",
-                "rel_area_pct": rel_pct,
-                "confidence": comb_conf,
-                "label": label,
-                "raw_label": constituents[0].get("raw_label", label),
-                "detection_type": detection_type,
-                "constituents_count": len(constituents),
-                "polygon": polygon,
-                "status": "Floating Waste",
-                "status_color": status_color,
-                "conf_tier": conf_tier,
-                "is_floating_waste": True
-            })
+                # 2. Add spatial cluster region box (Orange / Red boxes matching Photo 2)
+                if rel_pct >= 6.0 or len(constituents) >= 4:
+                    detection_type = "Large Accumulation Region"
+                    label = "Floating Waste Accumulation (Large Mat)"
+                    status_color = "#FF3B30"
+                else:
+                    detection_type = "Floating Cluster"
+                    label = "Floating Waste Cluster"
+                    status_color = "#FF8C00"
+
+                obj_id = f"FW-CLUST-{idx:03d}"
+                clustered_dets.append({
+                    "id": obj_id,
+                    "obj_id": obj_id,
+                    "box": [x1, y1, x2, y2],
+                    "box_str": f"{x1},{y1} | {w}×{h}",
+                    "x": x1,
+                    "y": y1,
+                    "w": w,
+                    "h": h,
+                    "area": actual_waste_area,
+                    "area_str": f"{actual_waste_area:,} px² ({rel_pct:.1f}%)",
+                    "rel_area_pct": rel_pct,
+                    "confidence": comb_conf,
+                    "label": label,
+                    "raw_label": label,
+                    "detection_type": detection_type,
+                    "constituents_count": len(constituents),
+                    "polygon": polygon,
+                    "status": "Floating Waste",
+                    "status_color": status_color,
+                    "conf_tier": "High Confidence" if comb_conf >= 0.60 else "Possible",
+                    "is_floating_waste": True
+                })
+            else:
+                if not any(d.get("id") == constituents[0].get("id") for d in clustered_dets):
+                    clustered_dets.append(constituents[0])
 
         return clustered_dets
 
